@@ -87,7 +87,7 @@ async function verify() {
   } catch (err) {
     icon.textContent  = '⚠️';
     title.textContent = 'Verification Failed';
-    msg.textContent   = err.message + ' The link may have expired — they're valid for 30 minutes.';
+    msg.textContent   = err.message + ' The link may have expired — links are valid for 30 minutes.';
     actions.innerHTML = `<a href="/" class="btn btn-outline">Return Home</a>`;
   }
 }
