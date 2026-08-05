@@ -1,0 +1,31 @@
+# RateYourTools.org — Cloudflare Pages + Workers config
+# Docs: https://developers.cloudflare.com/pages/functions/wrangler-configuration/
+
+name = "rateyourtools"
+compatibility_date = "2024-09-23"
+pages_build_output_dir = "."
+
+# ─── D1 Database ─────────────────────────────────────────────────────────────
+# 1. Create: wrangler d1 create rateyourtools-db
+# 2. Copy the database_id printed above and paste it below
+# 3. Initialize: wrangler d1 execute rateyourtools-db --file=schema.sql
+[[d1_databases]]
+binding     = "DB"
+database_name = "rateyourtools-db"
+database_id   = "1295dc5d-0fde-4947-93c6-4c32d399240f"   # ← replace after running step 1
+
+# ─── R2 Storage (photos & videos) ────────────────────────────────────────────
+# 1. Create: wrangler r2 bucket create rateyourtools-media
+# 2. Set CORS on the bucket in the Cloudflare dashboard
+[[r2_buckets]]
+binding     = "MEDIA_BUCKET"
+bucket_name = "rateyourtools-media"
+
+# ─── Environment Variables ───────────────────────────────────────────────────
+[vars]
+SITE_URL   = "https://rateyourtools.org"
+FROM_EMAIL = "verify@rateyourtools.org"  # must be a verified Resend sender
+
+# ─── Secrets (set via CLI, never in this file) ───────────────────────────────
+# wrangler secret put SESSION_SECRET   → random 32-char string
+# wrangler secret put RESEND_API_KEY   → from https://resend.com (free tier)

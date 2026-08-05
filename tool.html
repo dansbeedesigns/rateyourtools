@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="page-title">Tool Review — RateYourTools.org</title>
+  <meta name="description" id="page-desc" content="Read honest woodworker reviews on RateYourTools.org">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⭐</text></svg>">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">
+      <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-label="RateYourTools logo">
+        <circle cx="60" cy="60" r="58" fill="#0A2020" stroke="#D4CFC7" stroke-width="4"/>
+        <g fill="#D4CFC7" opacity="0.6">
+          <polygon points="60,6 64,18 56,18"/><polygon points="60,114 64,102 56,102"/>
+          <polygon points="6,60 18,64 18,56"/><polygon points="114,60 102,64 102,56"/>
+          <polygon points="18,18 26,28 20,34"/><polygon points="102,18 94,28 100,34"/>
+          <polygon points="18,102 26,92 20,86"/><polygon points="102,102 94,92 100,86"/>
+          <polygon points="10,38 22,40 19,47"/><polygon points="110,38 98,40 101,47"/>
+          <polygon points="10,82 22,80 19,73"/><polygon points="110,82 98,80 101,73"/>
+          <polygon points="38,10 40,22 47,19"/><polygon points="82,10 80,22 73,19"/>
+          <polygon points="38,110 40,98 47,101"/><polygon points="82,110 80,98 73,101"/>
+        </g>
+        <circle cx="60" cy="60" r="44" fill="#123030"/>
+        <text x="60" y="50" font-family="Arial" font-size="20" fill="#E8913A" text-anchor="middle">★★★★★</text>
+        <rect x="36" y="55" width="48" height="3" rx="1.5" fill="#D4CFC7"/>
+        <text x="60" y="76" font-family="Arial" font-weight="700" font-size="9.5" fill="#E8913A" text-anchor="middle" letter-spacing="2">RATE YOUR TOOLS</text>
+        <text x="60" y="89" font-family="Arial" font-weight="700" font-size="7" fill="#D4CFC7" text-anchor="middle" letter-spacing="1.5">.ORG</text>
+      </svg>
+      <div class="site-logo-text">Rate Your Tools<span>.org</span></div>
+    </a>
+    <button class="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+    <nav class="site-nav">
+      <a href="/">Home</a>
+      <a href="/browse.html">Browse</a>
+      <a href="/browse.html?sort=top">Top Rated</a>
+      <a href="/browse.html?sort=worst">Worst Rated</a>
+      <button class="btn btn-outline btn-sm nav-cta" id="write-review-nav">Write a Review</button>
+    </nav>
+  </div>
+</header>
+
+<!-- ─── Tool Hero (populated by JS) ───────────────────────────────────── -->
+<div id="tool-hero-wrapper">
+  <!-- Skeleton -->
+  <div class="tool-hero">
+    <div class="container">
+      <div class="tool-hero-inner">
+        <div class="skeleton" style="aspect-ratio:4/3;border-radius:16px"></div>
+        <div style="display:flex;flex-direction:column;gap:1rem">
+          <div class="skeleton" style="height:14px;width:40%"></div>
+          <div class="skeleton" style="height:36px;width:75%"></div>
+          <div class="skeleton" style="height:14px;width:60%"></div>
+          <div class="skeleton" style="height:14px;width:50%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Reviews Section ───────────────────────────────────────────────── -->
+<section class="section">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr 300px;gap:2.5rem;align-items:start">
+
+      <!-- Reviews list -->
+      <div>
+        <div class="section-header" style="margin-bottom:1.5rem">
+          <h2><span class="accent-bar"></span>Reviews</h2>
+          <button class="btn btn-primary btn-sm" id="write-review-btn">Write a Review</button>
+        </div>
+        <div id="reviews-list">
+          <!-- Skeleton -->
+          <div class="review-card" style="gap:.75rem">
+            <div class="skeleton" style="height:16px;width:30%"></div>
+            <div class="skeleton" style="height:14px;width:100%"></div>
+            <div class="skeleton" style="height:14px;width:80%"></div>
+          </div>
+        </div>
+        <div id="reviews-pagination" style="margin-top:1.5rem;display:flex;gap:.75rem;justify-content:center"></div>
+      </div>
+
+      <!-- Rating breakdown sidebar -->
+      <div id="rating-sidebar" style="position:sticky;top:80px">
+        <div style="background:var(--teal-dark);border:1px solid var(--teal-accent);border-radius:16px;padding:1.5rem">
+          <div style="text-align:center;margin-bottom:1.25rem">
+            <div class="rating-avg" id="sidebar-avg" style="font-size:3rem">—</div>
+            <div id="sidebar-stars"></div>
+            <div style="font-size:.8rem;color:var(--teal-mid);margin-top:.25rem" id="sidebar-count"></div>
+          </div>
+          <div class="rating-breakdown" id="rating-breakdown"></div>
+          <div style="margin-top:1.25rem;border-top:1px solid var(--teal-accent);padding-top:1.25rem">
+            <button class="btn btn-primary" style="width:100%" id="sidebar-review-btn">Write a Review</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Load more -->
+    <div id="load-more-wrap" style="text-align:center;margin-top:2rem;display:none">
+      <button class="btn btn-outline" id="load-more-btn">Load More Reviews</button>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Auth & Review Modals ──────────────────────────────────────────── -->
+<div class="modal-backdrop" id="review-modal" role="dialog" aria-modal="true">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header">
+      <span class="modal-title">Write a Review</span>
+      <button class="modal-close" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="review-tool-header" style="background:var(--teal-accent);border-radius:8px;padding:.75rem 1rem;margin-bottom:1.25rem;font-size:.9rem"></div>
+      <div class="form-group">
+        <label>Your Rating</label>
+        <div id="review-stars-container"></div>
+      </div>
+      <div class="form-group">
+        <label for="review-title">Review Title (optional)</label>
+        <input type="text" id="review-title" class="form-control" placeholder="e.g. Fantastic for the price" maxlength="120">
+      </div>
+      <div class="form-group">
+        <label for="review-body">Your Review</label>
+        <textarea id="review-body" class="form-control" rows="5" placeholder="Share your experience — what works, what doesn't, how long you've owned it…" maxlength="3000"></textarea>
+        <div style="text-align:right;font-size:.75rem;color:var(--teal-mid);margin-top:.25rem"><span id="review-char-count">0</span>/3000</div>
+      </div>
+      <div class="form-group">
+        <label>Photos & Videos (optional — max 5)</label>
+        <div class="upload-zone" id="upload-zone">
+          <input type="file" id="upload-input" multiple accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm">
+          <div style="font-size:2rem;margin-bottom:.5rem">📷</div>
+          <div>Click or drag to upload</div>
+          <div class="upload-zone-label">JPEG, PNG, WebP up to 10 MB · MP4, MOV, WebM up to 200 MB</div>
+        </div>
+        <div class="upload-previews" id="upload-previews"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm modal-close">Cancel</button>
+      <button class="btn btn-primary" id="review-submit" disabled>Submit Review</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Footer ─────────────────────────────────────────────────────────── -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-bottom" style="border-top:none;padding-top:0">
+      <p>© 2025 RateYourTools.org — A Dansbee Designs project</p>
+      <div class="constellation-links">
+        <a href="https://dansbeedesigns.com" target="_blank" rel="noopener">Dansbee Designs</a>
+        <a href="https://woodworkersnearme.org" target="_blank" rel="noopener">Woodworkers Near Me</a>
+        <a href="https://woodfinish.org" target="_blank" rel="noopener">WoodFinish.org</a>
+        <a href="https://knowyourwood.com" target="_blank" rel="noopener">Know Your Wood</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script type="module">
+import { API, Auth, toast, openModal, closeModal, requireAuth, injectAuthModal,
+         renderStars, initInteractiveStars, openLightbox, getParam, formatDate } from '/js/main.js';
+
+injectAuthModal();
+
+const slug = getParam('slug') || getParam('id');
+if (!slug) { location.href = '/'; }
+
+let toolData  = null;
+let reviewOffset = 0;
+const LIMIT      = 10;
+let totalReviews = 0;
+let uploadedUrls = [];
+let starRating   = 0;
+
+// ── Load tool ──────────────────────────────────────────────────────────
+async function loadTool() {
+  try {
+    const { tool, breakdown } = await API.get(`/tools/${slug}`);
+    toolData = tool;
+
+    document.title = `${tool.brand_name} ${tool.name} Reviews — RateYourTools.org`;
+    document.getElementById('page-desc').content = `Read ${tool.review_count} reviews of the ${tool.brand_name} ${tool.name}`;
+    document.getElementById('review-tool-header').innerHTML =
+      `<strong style="color:var(--amber)">Reviewing:</strong> ${tool.brand_name} ${tool.name}`;
+
+    // Render hero
+    document.getElementById('tool-hero-wrapper').innerHTML = `
+      <div class="tool-hero">
+        <div class="container">
+          <div class="tool-hero-inner">
+            <div class="tool-hero-image">
+              ${tool.image_url
+                ? `<img src="${tool.image_url}" alt="${tool.name}" loading="eager">`
+                : `<span class="no-image">🔧</span>`}
+            </div>
+            <div class="tool-hero-content">
+              <div class="tool-hero-breadcrumb">
+                <a href="/browse.html">All Tools</a> /
+                <a href="/browse.html?category=${tool.category_slug}">${tool.category_name}</a> /
+                <a href="/browse.html?brand=${tool.brand_slug}">${tool.brand_name}</a>
+              </div>
+              <div class="tool-hero-brand">${tool.brand_name || ''}</div>
+              <h1 class="tool-hero-name">${tool.name}</h1>
+              <div class="tool-hero-rating-summary">
+                ${renderStars(tool.avg_rating ?? 0)}
+                <span class="rating-avg">${tool.avg_rating ? Number(tool.avg_rating).toFixed(1) : '—'}</span>
+                <span class="review-count">${tool.review_count} review${tool.review_count !== 1 ? 's' : ''}</span>
+              </div>
+              ${tool.description ? `<p style="color:var(--cream);font-size:.9rem;max-width:480px">${tool.description}</p>` : ''}
+              <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.5rem">
+                <span class="pill" style="cursor:default">${tool.category_icon || ''} ${tool.category_name}</span>
+                <a href="/browse.html?brand=${tool.brand_slug}" class="pill">${tool.brand_name}</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+
+    // Sidebar
+    const avg = tool.avg_rating ?? 0;
+    document.getElementById('sidebar-avg').textContent   = avg ? Number(avg).toFixed(1) : '—';
+    document.getElementById('sidebar-stars').innerHTML   = renderStars(avg);
+    document.getElementById('sidebar-count').textContent = `${tool.review_count} review${tool.review_count !== 1 ? 's' : ''}`;
+
+    // Breakdown bars
+    const bdEl = document.getElementById('rating-breakdown');
+    const total = breakdown.reduce((s, r) => s + r.count, 0) || 1;
+    bdEl.innerHTML = [5,4,3,2,1].map(star => {
+      const found = breakdown.find(r => r.rating === star);
+      const pct   = found ? Math.round((found.count / total) * 100) : 0;
+      return `<div class="rating-row">
+        <span>${star}★</span>
+        <div class="rating-bar"><div class="rating-bar-fill" style="width:${pct}%"></div></div>
+        <span style="text-align:right">${found?.count ?? 0}</span>
+      </div>`;
+    }).join('');
+
+  } catch (err) {
+    document.getElementById('tool-hero-wrapper').innerHTML = `
+      <div class="section"><div class="container">
+        <div class="empty-state"><div class="icon">🔧</div><h3>Tool not found</h3>
+        <p><a href="/">Return home</a></p></div>
+      </div></div>`;
+  }
+}
+
+// ── Load reviews ───────────────────────────────────────────────────────
+async function loadReviews(append = false) {
+  if (!toolData) return;
+  try {
+    const { reviews, total } = await API.get('/reviews', {
+      tool_id: toolData.id, limit: LIMIT, offset: reviewOffset,
+    });
+    totalReviews = total;
+    const list = document.getElementById('reviews-list');
+
+    if (!append) list.innerHTML = '';
+
+    if (!reviews.length && !append) {
+      list.innerHTML = `<div class="empty-state">
+        <div class="icon">💬</div>
+        <h3>No reviews yet</h3>
+        <p>Be the first to share your experience with this tool.</p>
+        <button class="btn btn-primary mt-2" id="empty-review-btn">Write the First Review</button>
+      </div>`;
+      document.getElementById('empty-review-btn')?.addEventListener('click', openReviewModal);
+    } else {
+      reviews.forEach(r => {
+        const initials = r.user_email.slice(0,2).toUpperCase();
+        const media = r.media_urls?.length ? r.media_urls.map(url => {
+          const isVideo = /\.(mp4|mov|webm)$/i.test(url);
+          return isVideo
+            ? `<video src="${url}" onclick="event.stopPropagation()" style="width:100px;height:100px;object-fit:cover;border-radius:8px;border:1px solid var(--teal-accent);cursor:pointer" title="Click to expand"></video>`
+            : `<img src="${url}" alt="Review photo" loading="lazy" style="width:100px;height:100px;object-fit:cover;border-radius:8px;border:1px solid var(--teal-accent);cursor:pointer" onclick="openLb(this.src)">`;
+        }).join('') : '';
+
+        const card = document.createElement('div');
+        card.className = 'review-card';
+        card.innerHTML = `
+          <div class="review-header">
+            <div class="review-meta">
+              <div class="review-avatar">${initials}</div>
+              <div>
+                <div class="review-email">${r.user_email}</div>
+                <div style="display:flex;align-items:center;gap:.5rem">
+                  ${renderStars(r.rating)}
+                  <span class="review-date">${formatDate(r.created_at)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          ${r.title ? `<div class="review-title">${r.title}</div>` : ''}
+          <div class="review-body">${escHtml(r.body)}</div>
+          ${media ? `<div class="review-media">${media}</div>` : ''}
+          <div class="review-helpful">
+            <span style="font-size:.8rem;color:var(--teal-mid)">Helpful?</span>
+            <button class="helpful-btn" data-review="${r.id}" data-val="1">👍 ${r.helpful_yes ?? 0}</button>
+            <button class="helpful-btn" data-review="${r.id}" data-val="0">👎 ${r.helpful_no ?? 0}</button>
+          </div>`;
+
+        card.querySelectorAll('.helpful-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            await requireAuthAsync(async () => {
+              try {
+                await API.post('/vote', { review_id: Number(btn.dataset.review), helpful: btn.dataset.val === '1' });
+                btn.classList.add('voted');
+                toast('Vote recorded!', 'success');
+              } catch (err) { toast(err.message, 'error'); }
+            });
+          });
+        });
+
+        // Lightbox for media
+        card.querySelectorAll('.review-media img').forEach(img => {
+          img.addEventListener('click', () => openLightbox(img.src));
+        });
+        card.querySelectorAll('.review-media video').forEach(vid => {
+          vid.addEventListener('click', () => openLightbox(vid.src, true));
+        });
+
+        list.appendChild(card);
+      });
+
+      reviewOffset += reviews.length;
+      const loadMoreWrap = document.getElementById('load-more-wrap');
+      loadMoreWrap.style.display = reviewOffset < totalReviews ? 'block' : 'none';
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// ── Review form ────────────────────────────────────────────────────────
+function openReviewModal() {
+  requireAuth(() => {
+    openModal('review-modal');
+    // Star rating
+    const starsEl = document.getElementById('review-stars-container');
+    starsEl.innerHTML = renderStars(0, true);
+    initInteractiveStars(starsEl, val => {
+      starRating = val;
+      document.getElementById('review-submit').disabled = val === 0;
+    });
+    document.getElementById('review-body').addEventListener('input', function() {
+      document.getElementById('review-char-count').textContent = this.value.length;
+    });
+    // Upload
+    const zone  = document.getElementById('upload-zone');
+    const input = document.getElementById('upload-input');
+    zone.addEventListener('click', () => input.click());
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag-over'); handleFiles([...e.dataTransfer.files]); });
+    input.addEventListener('change', () => handleFiles([...input.files]));
+  });
+}
+
+async function handleFiles(files) {
+  const previews = document.getElementById('upload-previews');
+  for (const file of files) {
+    if (uploadedUrls.length >= 5) { toast('Maximum 5 files', 'error'); break; }
+    const item = document.createElement('div');
+    item.className = 'upload-preview-item';
+    item.innerHTML = `<div class="skeleton" style="width:80px;height:80px;border-radius:8px"></div>`;
+    previews.appendChild(item);
+    try {
+      const { url } = await API.upload(file);
+      uploadedUrls.push(url);
+      const isVideo = file.type.startsWith('video/');
+      item.innerHTML = `${isVideo ? `<video src="${url}" style="width:80px;height:80px;object-fit:cover;border-radius:8px"></video>` : `<img src="${url}" alt="upload">`}
+        <span class="upload-preview-remove" data-url="${url}">✕</span>`;
+      item.querySelector('.upload-preview-remove').addEventListener('click', () => {
+        uploadedUrls = uploadedUrls.filter(u => u !== url); item.remove();
+      });
+    } catch (err) { item.remove(); toast(err.message, 'error'); }
+  }
+}
+
+document.getElementById('review-submit').addEventListener('click', async function() {
+  if (!starRating) return;
+  const body = document.getElementById('review-body').value.trim();
+  if (body.length < 10) { toast('Please write at least 10 characters.', 'error'); return; }
+  this.disabled = true;
+  this.innerHTML = `<span class="spinner"></span> Submitting…`;
+  try {
+    await API.post('/reviews', {
+      tool_id:    toolData.id,
+      rating:     starRating,
+      title:      document.getElementById('review-title').value.trim(),
+      body,
+      media_urls: uploadedUrls,
+    });
+    closeModal('review-modal');
+    toast('Review submitted! Thank you.', 'success');
+    reviewOffset = 0; uploadedUrls = []; starRating = 0;
+    await loadTool();
+    await loadReviews();
+  } catch (err) {
+    this.disabled = false;
+    this.textContent = 'Submit Review';
+    toast(err.message, 'error');
+  }
+});
+
+// Wire up review buttons
+['write-review-nav','write-review-btn','sidebar-review-btn'].forEach(id => {
+  document.getElementById(id)?.addEventListener('click', openReviewModal);
+});
+document.getElementById('load-more-btn').addEventListener('click', () => loadReviews(true));
+
+// Helper: require auth, then call async action
+function requireAuthAsync(action) {
+  return new Promise(resolve => requireAuth(async () => { await action(); resolve(); }));
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Init ───────────────────────────────────────────────────────────────
+(async () => {
+  await loadTool();
+  await loadReviews();
+})();
+</script>
+</body>
+</html>

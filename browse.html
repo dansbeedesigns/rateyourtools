@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browse Tools — RateYourTools.org</title>
+  <meta name="description" content="Browse woodworking tools by category and brand. Find ratings from real woodworkers.">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⭐</text></svg>">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">
+      <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-label="RateYourTools logo">
+        <circle cx="60" cy="60" r="58" fill="#0A2020" stroke="#D4CFC7" stroke-width="4"/>
+        <g fill="#D4CFC7" opacity="0.6">
+          <polygon points="60,6 64,18 56,18"/><polygon points="60,114 64,102 56,102"/>
+          <polygon points="6,60 18,64 18,56"/><polygon points="114,60 102,64 102,56"/>
+          <polygon points="18,18 26,28 20,34"/><polygon points="102,18 94,28 100,34"/>
+          <polygon points="18,102 26,92 20,86"/><polygon points="102,102 94,92 100,86"/>
+          <polygon points="10,38 22,40 19,47"/><polygon points="110,38 98,40 101,47"/>
+          <polygon points="10,82 22,80 19,73"/><polygon points="110,82 98,80 101,73"/>
+          <polygon points="38,10 40,22 47,19"/><polygon points="82,10 80,22 73,19"/>
+          <polygon points="38,110 40,98 47,101"/><polygon points="82,110 80,98 73,101"/>
+        </g>
+        <circle cx="60" cy="60" r="44" fill="#123030"/>
+        <text x="60" y="50" font-family="Arial" font-size="20" fill="#E8913A" text-anchor="middle">★★★★★</text>
+        <rect x="36" y="55" width="48" height="3" rx="1.5" fill="#D4CFC7"/>
+        <text x="60" y="76" font-family="Arial" font-weight="700" font-size="9.5" fill="#E8913A" text-anchor="middle" letter-spacing="2">RATE YOUR TOOLS</text>
+        <text x="60" y="89" font-family="Arial" font-weight="700" font-size="7" fill="#D4CFC7" text-anchor="middle" letter-spacing="1.5">.ORG</text>
+      </svg>
+      <div class="site-logo-text">Rate Your Tools<span>.org</span></div>
+    </a>
+    <button class="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+    <nav class="site-nav">
+      <a href="/">Home</a>
+      <a href="/browse.html" class="active">Browse</a>
+      <a href="/browse.html?sort=top">Top Rated</a>
+      <a href="/browse.html?sort=worst">Worst Rated</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ─── Browse header ──────────────────────────────────────────────────── -->
+<div style="background:var(--teal-dark);border-bottom:1px solid var(--teal-accent);padding:2rem 0">
+  <div class="container">
+    <h1 id="page-heading" style="margin-bottom:1rem">Browse Tools</h1>
+    <div class="search-bar" style="max-width:480px;margin:0">
+      <input type="search" id="search-input" placeholder="Search tools or brands…" autocomplete="off">
+      <button id="search-btn">GO</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Main layout ────────────────────────────────────────────────────── -->
+<section class="section">
+  <div class="container">
+
+    <!-- Sort tabs -->
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:2rem;border-bottom:1px solid var(--teal-accent);padding-bottom:1rem">
+      <a href="/browse.html" class="pill sort-tab" data-sort="newest">Newest</a>
+      <a href="/browse.html?sort=top" class="pill sort-tab" data-sort="top">⭐ Top Rated</a>
+      <a href="/browse.html?sort=worst" class="pill sort-tab" data-sort="worst">👎 Worst Rated</a>
+    </div>
+
+    <div class="browse-layout">
+
+      <!-- Sidebar: categories + brands -->
+      <aside>
+        <div style="margin-bottom:2rem">
+          <div class="label text-muted" style="margin-bottom:.75rem">Categories</div>
+          <nav class="filter-sidebar" id="category-sidebar">
+            <a href="/browse.html" class="${!new URLSearchParams(location.search).get('category') ? 'active' : ''}">All Categories</a>
+            <!-- Populated by JS -->
+          </nav>
+        </div>
+        <div>
+          <div class="label text-muted" style="margin-bottom:.75rem">Brands</div>
+          <nav class="filter-sidebar" id="brand-sidebar">
+            <a href="/browse.html" class="${!new URLSearchParams(location.search).get('brand') ? 'active' : ''}">All Brands</a>
+            <!-- Populated by JS -->
+          </nav>
+        </div>
+      </aside>
+
+      <!-- Tool grid -->
+      <div>
+        <div class="tools-grid" id="tools-grid">
+          <!-- Skeleton -->
+          ${[1,2,3,4,5,6].map(() => `
+          <div class="tool-card" style="pointer-events:none">
+            <div class="skeleton" style="aspect-ratio:16/9"></div>
+            <div class="tool-card-body" style="gap:.75rem">
+              <div class="skeleton" style="height:12px;width:60%"></div>
+              <div class="skeleton" style="height:18px;width:85%"></div>
+              <div class="skeleton" style="height:12px;width:40%"></div>
+            </div>
+          </div>`).join('')}
+        </div>
+
+        <!-- Pagination -->
+        <div id="pagination" style="margin-top:2rem;display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Footer ─────────────────────────────────────────────────────────── -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-bottom" style="border-top:none;padding-top:0">
+      <p>© 2025 RateYourTools.org — A Dansbee Designs project</p>
+      <div class="constellation-links">
+        <a href="https://dansbeedesigns.com" target="_blank" rel="noopener">Dansbee Designs</a>
+        <a href="https://woodworkersnearme.org" target="_blank" rel="noopener">Woodworkers Near Me</a>
+        <a href="https://woodfinish.org" target="_blank" rel="noopener">WoodFinish.org</a>
+        <a href="https://knowyourwood.com" target="_blank" rel="noopener">Know Your Wood</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script type="module">
+import { API, renderStars, getParam } from '/js/main.js';
+
+const LIMIT = 20;
+let offset  = 0;
+let total   = 0;
+
+const params = new URLSearchParams(location.search);
+const q        = params.get('q')        || '';
+const category = params.get('category') || '';
+const brand    = params.get('brand')    || '';
+const sort     = params.get('sort')     || 'newest';
+
+// ── Set sort tab active ────────────────────────────────────────────────
+document.querySelectorAll('.sort-tab').forEach(tab => {
+  tab.classList.toggle('active', tab.dataset.sort === sort);
+  // Preserve current filters when switching sort
+  const newUrl = new URL(tab.href, location.origin);
+  if (category) newUrl.searchParams.set('category', category);
+  if (brand)    newUrl.searchParams.set('brand', brand);
+  if (q)        newUrl.searchParams.set('q', q);
+  tab.href = newUrl.toString();
+});
+
+// ── Page heading ───────────────────────────────────────────────────────
+const sortLabel = { top: 'Top Rated Tools', worst: 'Worst Rated Tools', newest: 'Browse Tools' };
+document.getElementById('page-heading').textContent =
+  q ? `Search: "${q}"` : sortLabel[sort] || 'Browse Tools';
+
+// ── Search bar ─────────────────────────────────────────────────────────
+if (q) document.getElementById('search-input').value = q;
+const doSearch = () => {
+  const val = document.getElementById('search-input').value.trim();
+  const newUrl = new URL('/browse.html', location.origin);
+  if (val) newUrl.searchParams.set('q', val);
+  if (sort !== 'newest') newUrl.searchParams.set('sort', sort);
+  location.href = newUrl.toString();
+};
+document.getElementById('search-btn').addEventListener('click', doSearch);
+document.getElementById('search-input').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+// ── Load filters ───────────────────────────────────────────────────────
+async function loadFilters() {
+  try {
+    const [catData, brandData] = await Promise.all([
+      API.get('/tools', { mode: 'categories' }),
+      API.get('/tools', { mode: 'brands' }),
+    ]);
+
+    const catSidebar   = document.getElementById('category-sidebar');
+    const brandSidebar = document.getElementById('brand-sidebar');
+
+    catData.categories.forEach(c => {
+      const a = document.createElement('a');
+      a.href = buildUrl({ category: c.slug, brand: '', q });
+      a.className = category === c.slug ? 'active' : '';
+      a.innerHTML = `${c.icon} ${c.name} <span style="float:right;font-size:.75rem;color:var(--teal-mid)">${c.tool_count}</span>`;
+      catSidebar.appendChild(a);
+    });
+
+    brandData.brands.filter(b => b.tool_count > 0).forEach(b => {
+      const a = document.createElement('a');
+      a.href = buildUrl({ brand: b.slug, category: '', q });
+      a.className = brand === b.slug ? 'active' : '';
+      a.innerHTML = `${b.name} <span style="float:right;font-size:.75rem;color:var(--teal-mid)">${b.tool_count}</span>`;
+      brandSidebar.appendChild(a);
+    });
+  } catch {}
+}
+
+function buildUrl(overrides) {
+  const u = new URL('/browse.html', location.origin);
+  const merged = { q, category, brand, sort, ...overrides };
+  Object.entries(merged).forEach(([k, v]) => { if (v) u.searchParams.set(k, v); });
+  return u.toString();
+}
+
+// ── Load tools ─────────────────────────────────────────────────────────
+async function loadTools(newOffset = 0) {
+  offset = newOffset;
+  try {
+    const data = await API.get('/tools', { q, category, brand, sort, limit: LIMIT, offset });
+    total = data.total;
+
+    const grid = document.getElementById('tools-grid');
+    grid.innerHTML = data.tools.length
+      ? data.tools.map((t, i) => toolCard(t, newOffset + i + 1)).join('')
+      : `<div class="empty-state" style="grid-column:1/-1">
+          <div class="icon">🔧</div>
+          <h3>No tools found</h3>
+          <p>${q ? `No results for "${q}".` : 'No tools in this category yet.'}</p>
+         </div>`;
+
+    renderPagination();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function toolCard(tool, rank) {
+  const avg  = tool.avg_rating ?? 0;
+  const showRank = sort === 'top' || sort === 'worst';
+  return `
+    <a href="/tool.html?slug=${tool.slug}" class="tool-card">
+      <div class="tool-card-image">
+        ${tool.image_url
+          ? `<img src="${tool.image_url}" alt="${tool.name}" loading="lazy">`
+          : `<span class="no-image">🔧</span>`}
+        ${showRank ? `<span class="rank-badge${sort === 'worst' ? ' worst' : ''}">#${rank}</span>` : ''}
+      </div>
+      <div class="tool-card-body">
+        <div class="tool-card-brand">${tool.brand_name || ''}</div>
+        <div class="tool-card-name">${tool.name}</div>
+        <div class="tool-card-category">${tool.category_icon || ''} ${tool.category_name || ''}</div>
+        <div class="tool-card-footer">
+          <span style="display:flex;align-items:center;gap:.25rem">
+            ${renderStars(avg)}
+            <span class="rating-avg">${avg ? Number(avg).toFixed(1) : '—'}</span>
+          </span>
+          <span class="review-count">${tool.review_count} review${tool.review_count !== 1 ? 's' : ''}</span>
+        </div>
+      </div>
+    </a>`;
+}
+
+function renderPagination() {
+  const pages = Math.ceil(total / LIMIT);
+  const current = Math.floor(offset / LIMIT);
+  const pag = document.getElementById('pagination');
+  if (pages <= 1) { pag.innerHTML = ''; return; }
+
+  pag.innerHTML = '';
+  const addBtn = (label, pageIdx, disabled = false, active = false) => {
+    const btn = document.createElement('button');
+    btn.className = `btn btn-sm ${active ? 'btn-primary' : 'btn-ghost'}`;
+    btn.textContent = label;
+    btn.disabled = disabled;
+    btn.addEventListener('click', () => loadTools(pageIdx * LIMIT));
+    pag.appendChild(btn);
+  };
+
+  addBtn('← Prev', current - 1, current === 0);
+  for (let i = 0; i < pages; i++) {
+    if (pages > 7 && Math.abs(i - current) > 2 && i !== 0 && i !== pages - 1) {
+      if (i === 1 || i === pages - 2) { const el = document.createElement('span'); el.textContent = '…'; el.style.padding = '.4rem'; pag.appendChild(el); }
+      continue;
+    }
+    addBtn(i + 1, i, false, i === current);
+  }
+  addBtn('Next →', current + 1, current >= pages - 1);
+}
+
+// ── Init ───────────────────────────────────────────────────────────────
+loadFilters();
+loadTools();
+</script>
+</body>
+</html>
