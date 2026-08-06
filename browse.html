@@ -226,14 +226,11 @@ function toolCard(tool, rank) {
   const showRank = sort === 'top' || sort === 'worst';
   return `
     <a href="/tool.html?slug=${tool.slug}" class="tool-card">
-      <div class="tool-card-image">
-        ${tool.image_url
-          ? `<img src="${tool.image_url}" alt="${tool.name}" loading="lazy">`
-          : `<span class="no-image">🔧</span>`}
-        ${showRank ? `<span class="rank-badge${sort === 'worst' ? ' worst' : ''}">#${rank}</span>` : ''}
-      </div>
       <div class="tool-card-body">
-        <div class="tool-card-brand">${tool.brand_name || ''}</div>
+        <div class="tool-card-header">
+          <div class="tool-card-brand">${tool.brand_name || ''}</div>
+          ${showRank ? `<span class="rank-badge${sort === 'worst' ? ' worst' : ''}">#${rank}</span>` : ''}
+        </div>
         <div class="tool-card-name">${tool.name}</div>
         <div class="tool-card-category">${tool.category_icon || ''} ${tool.category_name || ''}</div>
         <div class="tool-card-footer">

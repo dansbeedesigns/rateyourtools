@@ -23,7 +23,13 @@ INSERT OR IGNORE INTO categories (name, slug, icon) VALUES
   ('Dust Collection',   'dust-collection',  '💨'),
   ('Safety Equipment',  'safety',           '🦺'),
   ('Lathes',            'lathes',           '🔘'),
-  ('Scroll Saws',       'scroll-saws',      '〰️');
+  ('Scroll Saws',       'scroll-saws',      '〰️'),
+  ('Miter Saws',        'miter-saws',       '📐'),
+  ('Planer/Jointer Combos', 'planer-jointer-combos', '📐'),
+  ('Drill Presses',      'drill-presses',     '🔩'),
+  ('Track Saws',         'track-saws',        '🪚'),
+  ('Routers',            'routers',           '🔄'),
+  ('Jigsaws',            'jigsaws',           '〰️');
 
 -- ─── Brands ──────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS brands (
@@ -51,7 +57,10 @@ INSERT OR IGNORE INTO brands (name, slug) VALUES
   ('Shop Fox',      'shop-fox'),
   ('Delta',         'delta'),
   ('Rockler',       'rockler'),
-  ('Woodpeckers',   'woodpeckers');
+  ('Woodpeckers',   'woodpeckers'),
+  ('Lie-Nielsen',   'lie-nielsen'),
+  ('Veritas',       'veritas'),
+  ('Narex',         'narex');
 
 -- ─── Tools ───────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS tools (

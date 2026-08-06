@@ -106,6 +106,7 @@ h4 { font-size: 1rem; letter-spacing: 2px; }
   text-decoration: none;
 }
 .site-logo svg { width: 48px; height: 48px; flex-shrink: 0; }
+.site-logo img { width: 160px; height: 160px; flex-shrink: 0; border-radius: 50%; }
 .site-logo-text {
   font-family: var(--font-display);
   font-weight: 700;
@@ -141,15 +142,15 @@ h4 { font-size: 1rem; letter-spacing: 2px; }
   border-bottom-color: var(--amber);
 }
 .nav-cta {
-  background: var(--amber);
-  color: var(--teal-darkest) !important;
-  border: none !important;
+  background: transparent !important;
+  color: var(--cream) !important;
+  border: 2px solid var(--amber) !important;
   padding: 0.5rem 1rem !important;
   border-radius: var(--radius);
   font-weight: 700;
 }
 .nav-cta:hover {
-  background: var(--amber-light) !important;
+  background: var(--amber) !important;
   color: var(--teal-darkest) !important;
 }
 .hamburger {
@@ -168,6 +169,7 @@ h4 { font-size: 1rem; letter-spacing: 2px; }
 }
 @media (max-width: 768px) {
   .hamburger { display: flex; }
+  .site-logo img { width: 90px; height: 90px; }
   .site-nav {
     display: none;
     position: absolute;
@@ -328,43 +330,30 @@ h4 { font-size: 1rem; letter-spacing: 2px; }
   box-shadow: 0 8px 32px rgba(0,0,0,0.5);
   border-color: var(--amber);
 }
-.tool-card-image {
-  aspect-ratio: 16/9;
-  background: var(--teal-accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  position: relative;
-}
-.tool-card-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.tool-card-image .no-image {
-  font-size: 3rem;
-  opacity: 0.3;
-}
 .rank-badge {
-  position: absolute;
-  top: 0.5rem;
-  left: 0.5rem;
+  display: inline-block;
   background: var(--amber);
   color: var(--teal-darkest);
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   letter-spacing: 1px;
-  padding: 0.2rem 0.6rem;
+  padding: 0.15rem 0.55rem;
   border-radius: var(--radius);
+  flex-shrink: 0;
 }
 .rank-badge.worst { background: var(--red); color: var(--white); }
 .tool-card-body {
-  padding: 1rem 1.25rem 1.25rem;
+  padding: 1.25rem;
   flex: 1;
   display: flex;
   flex-direction: column;
+  gap: 0.5rem;
+}
+.tool-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
 }
 .tool-card-brand {
@@ -377,7 +366,7 @@ h4 { font-size: 1rem; letter-spacing: 2px; }
 .tool-card-name {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--white);
@@ -385,7 +374,7 @@ h4 { font-size: 1rem; letter-spacing: 2px; }
 }
 .tool-card-category {
   font-size: 0.8rem;
-  color: var(--teal-mid);
+  color: rgba(212, 207, 199, 0.6);
 }
 .tool-card-footer {
   display: flex;
@@ -397,7 +386,7 @@ h4 { font-size: 1rem; letter-spacing: 2px; }
 }
 .review-count {
   font-size: 0.75rem;
-  color: var(--teal-mid);
+  color: rgba(212, 207, 199, 0.6);
 }
 
 /* ─── Star Rating ────────────────────────────────────────────────────────── */
@@ -988,7 +977,7 @@ select.form-control {
 }
 .footer-brand p {
   font-size: 0.85rem;
-  color: var(--teal-mid);
+  color: rgba(212, 207, 199, 0.8);
   max-width: 260px;
   margin-top: 0.75rem;
 }
@@ -999,7 +988,7 @@ select.form-control {
   margin-bottom: 0.75rem;
 }
 .footer-links ul { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; }
-.footer-links li a { font-size: 0.85rem; color: var(--teal-mid); }
+.footer-links li a { font-size: 0.85rem; color: rgba(212, 207, 199, 0.8); }
 .footer-links li a:hover { color: var(--amber); }
 .footer-bottom {
   border-top: 1px solid var(--teal-accent);
@@ -1012,7 +1001,7 @@ select.form-control {
 }
 .footer-bottom p {
   font-size: 0.75rem;
-  color: var(--teal-mid);
+  color: rgba(212, 207, 199, 0.75);
 }
 .constellation-links {
   display: flex;
@@ -1024,7 +1013,7 @@ select.form-control {
   font-size: 0.65rem;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: var(--teal-mid);
+  color: rgba(212, 207, 199, 0.7);
 }
 .constellation-links a:hover { color: var(--amber); }
 
@@ -1065,7 +1054,7 @@ select.form-control {
 /* ─── Utility Classes ────────────────────────────────────────────────────── */
 .text-amber  { color: var(--amber) !important; }
 .text-cream  { color: var(--cream) !important; }
-.text-muted  { color: var(--teal-mid) !important; }
+.text-muted  { color: rgba(212, 207, 199, 0.7) !important; }
 .text-red    { color: var(--red) !important; }
 .text-center { text-align: center; }
 .mt-1 { margin-top: 0.5rem; }

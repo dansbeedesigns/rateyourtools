@@ -17,42 +17,7 @@
 <header class="site-header">
   <div class="container">
     <a href="/" class="site-logo">
-      <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-label="RateYourTools logo">
-        <!-- Outer ring -->
-        <circle cx="60" cy="60" r="58" fill="#0A2020" stroke="#D4CFC7" stroke-width="4"/>
-        <!-- Saw blade teeth (24 teeth) -->
-        <g fill="#D4CFC7" opacity="0.6">
-          <polygon points="60,6 64,18 56,18"/>
-          <polygon points="60,114 64,102 56,102"/>
-          <polygon points="6,60 18,64 18,56"/>
-          <polygon points="114,60 102,64 102,56"/>
-          <polygon points="18,18 26,28 20,34"/>
-          <polygon points="102,18 94,28 100,34"/>
-          <polygon points="18,102 26,92 20,86"/>
-          <polygon points="102,102 94,92 100,86"/>
-          <polygon points="10,38 22,40 19,47"/>
-          <polygon points="110,38 98,40 101,47"/>
-          <polygon points="10,82 22,80 19,73"/>
-          <polygon points="110,82 98,80 101,73"/>
-          <polygon points="38,10 40,22 47,19"/>
-          <polygon points="82,10 80,22 73,19"/>
-          <polygon points="38,110 40,98 47,101"/>
-          <polygon points="82,110 80,98 73,101"/>
-        </g>
-        <!-- Inner circle -->
-        <circle cx="60" cy="60" r="44" fill="#123030"/>
-        <!-- Stars (5 stars) -->
-        <g fill="#E8913A" font-size="16" text-anchor="middle">
-          <text x="60" y="50" font-family="Arial" font-size="20">★★★★★</text>
-        </g>
-        <!-- Center wrench/tool icon area -->
-        <rect x="36" y="55" width="48" height="3" rx="1.5" fill="#D4CFC7"/>
-        <!-- Text -->
-        <text x="60" y="76" font-family="Arial" font-weight="700" font-size="9.5"
-              fill="#E8913A" text-anchor="middle" letter-spacing="2">RATE YOUR TOOLS</text>
-        <text x="60" y="89" font-family="Arial" font-weight="700" font-size="7"
-              fill="#D4CFC7" text-anchor="middle" letter-spacing="1.5">.ORG</text>
-      </svg>
+      <img src="/rateyourtools-logo.png" alt="RateYourTools logo">
       <div class="site-logo-text">
         Rate Your Tools
         <span>.org</span>
@@ -89,6 +54,24 @@
   </div>
 </section>
 
+<!-- ─── Why This Site ────────────────────────────────────────────────────── -->
+<section class="section" style="background:var(--teal-accent);border-top:3px solid var(--amber);border-bottom:none;">
+  <div class="container" style="max-width:800px">
+    <div class="section-header">
+      <h2><span class="accent-bar"></span>Why This Site Exists</h2>
+    </div>
+    <p style="font-size:1.05rem;line-height:1.9;margin-bottom:1.25rem;">
+      Big woodworking tools — table saws, jointers, planers, bandsaws — are rarely on a store floor where you can see them, feel the fence, test the table flatness, or hear how they run under load. You're buying based on spec sheets, marketing photography, and hope.
+    </p>
+    <p style="font-size:1.05rem;line-height:1.9;margin-bottom:1.25rem;">
+      That's a problem when you're committing $2,000, $3,000, or more. I know this firsthand — my Harvey Alpha table saw is a tool I researched thoroughly and still came away with regrets I only fully understood after owning it. Things no spec sheet told me. Things real owners knew.
+    </p>
+    <p style="font-size:1.05rem;line-height:1.9;">
+      RateYourTools.org exists to fill that gap. Real ratings from woodworkers who actually own the tools — no sponsored content, no affiliate pressure — so you can make a confident decision before you spend your hard-earned money.
+    </p>
+  </div>
+</section>
+
 <!-- ─── Top Rated ──────────────────────────────────────────────────────── -->
 <section class="section">
   <div class="container">
@@ -99,27 +82,27 @@
     <div class="tools-grid" id="top-tools">
       <!-- Skeleton placeholders -->
       <div class="tool-card" style="pointer-events:none">
-        <div class="skeleton" style="aspect-ratio:16/9"></div>
         <div class="tool-card-body" style="gap:.75rem">
-          <div class="skeleton" style="height:12px;width:60%"></div>
-          <div class="skeleton" style="height:18px;width:85%"></div>
+          <div class="skeleton" style="height:12px;width:50%"></div>
+          <div class="skeleton" style="height:20px;width:85%"></div>
           <div class="skeleton" style="height:12px;width:40%"></div>
+          <div class="skeleton" style="height:12px;width:30%;margin-top:.5rem"></div>
         </div>
       </div>
       <div class="tool-card" style="pointer-events:none">
-        <div class="skeleton" style="aspect-ratio:16/9"></div>
         <div class="tool-card-body" style="gap:.75rem">
-          <div class="skeleton" style="height:12px;width:60%"></div>
-          <div class="skeleton" style="height:18px;width:85%"></div>
+          <div class="skeleton" style="height:12px;width:50%"></div>
+          <div class="skeleton" style="height:20px;width:85%"></div>
           <div class="skeleton" style="height:12px;width:40%"></div>
+          <div class="skeleton" style="height:12px;width:30%;margin-top:.5rem"></div>
         </div>
       </div>
       <div class="tool-card" style="pointer-events:none">
-        <div class="skeleton" style="aspect-ratio:16/9"></div>
         <div class="tool-card-body" style="gap:.75rem">
-          <div class="skeleton" style="height:12px;width:60%"></div>
-          <div class="skeleton" style="height:18px;width:85%"></div>
+          <div class="skeleton" style="height:12px;width:50%"></div>
+          <div class="skeleton" style="height:20px;width:85%"></div>
           <div class="skeleton" style="height:12px;width:40%"></div>
+          <div class="skeleton" style="height:12px;width:30%;margin-top:.5rem"></div>
         </div>
       </div>
     </div>
@@ -131,7 +114,7 @@
   <div class="container" style="display:flex;justify-content:center;gap:4rem;flex-wrap:wrap;text-align:center;">
     <div>
       <div style="font-family:var(--font-display);font-size:2.5rem;font-weight:700;color:var(--amber)" id="stat-tools">—</div>
-      <div class="label text-muted">Tools Rated</div>
+      <div class="label text-muted">Tools in Database</div>
     </div>
     <div>
       <div style="font-family:var(--font-display);font-size:2.5rem;font-weight:700;color:var(--amber)" id="stat-reviews">—</div>
@@ -154,27 +137,27 @@
     <div class="tools-grid" id="worst-tools">
       <!-- Skeleton -->
       <div class="tool-card" style="pointer-events:none">
-        <div class="skeleton" style="aspect-ratio:16/9"></div>
         <div class="tool-card-body" style="gap:.75rem">
-          <div class="skeleton" style="height:12px;width:60%"></div>
-          <div class="skeleton" style="height:18px;width:85%"></div>
+          <div class="skeleton" style="height:12px;width:50%"></div>
+          <div class="skeleton" style="height:20px;width:85%"></div>
           <div class="skeleton" style="height:12px;width:40%"></div>
+          <div class="skeleton" style="height:12px;width:30%;margin-top:.5rem"></div>
         </div>
       </div>
       <div class="tool-card" style="pointer-events:none">
-        <div class="skeleton" style="aspect-ratio:16/9"></div>
         <div class="tool-card-body" style="gap:.75rem">
-          <div class="skeleton" style="height:12px;width:60%"></div>
-          <div class="skeleton" style="height:18px;width:85%"></div>
+          <div class="skeleton" style="height:12px;width:50%"></div>
+          <div class="skeleton" style="height:20px;width:85%"></div>
           <div class="skeleton" style="height:12px;width:40%"></div>
+          <div class="skeleton" style="height:12px;width:30%;margin-top:.5rem"></div>
         </div>
       </div>
       <div class="tool-card" style="pointer-events:none">
-        <div class="skeleton" style="aspect-ratio:16/9"></div>
         <div class="tool-card-body" style="gap:.75rem">
-          <div class="skeleton" style="height:12px;width:60%"></div>
-          <div class="skeleton" style="height:18px;width:85%"></div>
+          <div class="skeleton" style="height:12px;width:50%"></div>
+          <div class="skeleton" style="height:20px;width:85%"></div>
           <div class="skeleton" style="height:12px;width:40%"></div>
+          <div class="skeleton" style="height:12px;width:30%;margin-top:.5rem"></div>
         </div>
       </div>
     </div>
@@ -220,12 +203,13 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <p>© 2025 RateYourTools.org — A Dansbee Designs project</p>
+      <p>© 2026 RateYourTools.org — A Dansbee Designs project</p>
       <div class="constellation-links">
         <a href="https://dansbeedesigns.com" target="_blank" rel="noopener">Dansbee Designs</a>
         <a href="https://woodworkersnearme.org" target="_blank" rel="noopener">Woodworkers Near Me</a>
         <a href="https://woodfinish.org" target="_blank" rel="noopener">WoodFinish.org</a>
         <a href="https://knowyourwood.com" target="_blank" rel="noopener">Know Your Wood</a>
+        <a href="https://myshoplayout.com" target="_blank" rel="noopener">MyShopLayout</a>
       </div>
     </div>
   </div>
@@ -341,14 +325,11 @@ function toolCard(tool, rank, worst = false) {
   const href = `/tool.html?slug=${tool.slug}`;
   return `
     <a href="${href}" class="tool-card">
-      <div class="tool-card-image">
-        ${tool.image_url
-          ? `<img src="${tool.image_url}" alt="${tool.name}" loading="lazy">`
-          : `<span class="no-image">🔧</span>`}
-        <span class="rank-badge${worst ? ' worst' : ''}">#${rank}</span>
-      </div>
       <div class="tool-card-body">
-        <div class="tool-card-brand">${tool.brand_name || ''}</div>
+        <div class="tool-card-header">
+          <div class="tool-card-brand">${tool.brand_name || ''}</div>
+          <span class="rank-badge${worst ? ' worst' : ''}">#${rank}</span>
+        </div>
         <div class="tool-card-name">${tool.name}</div>
         <div class="tool-card-category">${tool.category_name || ''}</div>
         <div class="tool-card-footer">

@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — RateYourTools.org</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* ── Admin-specific overrides ── */
+    body { background: var(--teal-darkest); }
+
+    .admin-header {
+      background: var(--teal-dark);
+      border-bottom: 3px solid var(--amber);
+      padding: .75rem 0;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .admin-header .container {
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    }
+    .admin-title {
+      font-family: var(--font-display);
+      font-size: 1rem; font-weight: 700; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--amber);
+    }
+    .admin-user { font-size: .8rem; color: rgba(212,207,199,.7); }
+
+    /* ── Tabs ── */
+    .tab-bar {
+      display: flex; gap: 0; border-bottom: 2px solid var(--teal-accent);
+      margin-bottom: 2rem;
+    }
+    .tab-btn {
+      font-family: var(--font-label); font-size: .75rem; letter-spacing: 2px;
+      text-transform: uppercase; padding: .85rem 1.5rem;
+      color: rgba(212,207,199,.6); background: none; border: none;
+      border-bottom: 3px solid transparent; margin-bottom: -2px;
+      cursor: pointer; transition: all var(--transition);
+    }
+    .tab-btn:hover { color: var(--cream); }
+    .tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Stats grid ── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 1rem; margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--teal-dark); border: 1px solid var(--teal-accent);
+      border-radius: var(--radius-lg); padding: 1.25rem; text-align: center;
+    }
+    .stat-card .n {
+      font-family: var(--font-display); font-size: 2.25rem; font-weight: 700;
+      color: var(--amber); display: block;
+    }
+    .stat-card .label { font-size: .7rem; color: rgba(212,207,199,.65); letter-spacing: 2px; }
+    .stat-card.alert .n { color: var(--red); }
+
+    /* ── Tables ── */
+    .admin-table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+    .admin-table th {
+      font-family: var(--font-label); font-size: .65rem; letter-spacing: 2px;
+      text-transform: uppercase; color: rgba(212,207,199,.6);
+      text-align: left; padding: .6rem 1rem;
+      border-bottom: 1px solid var(--teal-accent);
+    }
+    .admin-table td {
+      padding: .75rem 1rem; border-bottom: 1px solid var(--teal-accent);
+      color: var(--cream); vertical-align: top;
+    }
+    .admin-table tr:hover td { background: var(--teal-accent); }
+    .admin-table .muted { color: rgba(212,207,199,.55); font-size: .8rem; }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex; align-items: center; gap: .75rem;
+      margin-bottom: 1.25rem; flex-wrap: wrap;
+    }
+    .toolbar input[type=search] {
+      flex: 1; min-width: 200px; padding: .5rem .85rem;
+      background: var(--teal-accent); border: 1px solid var(--teal-mid);
+      border-radius: var(--radius); color: var(--cream); font-size: .875rem;
+      outline: none;
+    }
+    .toolbar input[type=search]:focus { border-color: var(--amber); }
+    .toolbar select {
+      padding: .5rem .75rem; background: var(--teal-accent);
+      border: 1px solid var(--teal-mid); border-radius: var(--radius);
+      color: var(--cream); font-size: .875rem; cursor: pointer;
+    }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-block; font-family: var(--font-label); font-size: .65rem;
+      letter-spacing: 1px; text-transform: uppercase;
+      padding: .15rem .55rem; border-radius: 999px;
+    }
+    .badge-pending  { background: rgba(232,145,58,.15); color: var(--amber); }
+    .badge-approved { background: rgba(46,160,67,.15);  color: #4caf82; }
+    .badge-rejected { background: rgba(192,57,43,.15);  color: var(--red); }
+
+    /* ── Action buttons ── */
+    .btn-approve { background: none; border: 1px solid #4caf82; color: #4caf82;
+      padding: .3rem .75rem; border-radius: var(--radius); font-size: .8rem; cursor: pointer; }
+    .btn-approve:hover { background: rgba(76,175,130,.15); }
+    .btn-reject, .btn-delete {
+      background: none; border: 1px solid var(--red); color: var(--red);
+      padding: .3rem .75rem; border-radius: var(--radius); font-size: .8rem; cursor: pointer; }
+    .btn-reject:hover, .btn-delete:hover { background: rgba(192,57,43,.15); }
+    .btn-edit {
+      background: none; border: 1px solid var(--teal-mid); color: var(--cream);
+      padding: .3rem .75rem; border-radius: var(--radius); font-size: .8rem; cursor: pointer; }
+    .btn-edit:hover { border-color: var(--amber); color: var(--amber); }
+
+    .action-group { display: flex; gap: .4rem; flex-wrap: wrap; }
+
+    /* ── Pagination ── */
+    .pagination {
+      display: flex; align-items: center; gap: .5rem;
+      margin-top: 1.25rem; font-size: .85rem; color: rgba(212,207,199,.65);
+    }
+    .pagination button {
+      background: none; border: 1px solid var(--teal-mid); color: var(--cream);
+      padding: .35rem .75rem; border-radius: var(--radius); cursor: pointer; font-size: .8rem;
+    }
+    .pagination button:hover:not(:disabled) { border-color: var(--amber); }
+    .pagination button:disabled { opacity: .35; cursor: default; }
+
+    /* ── Edit modal ── */
+    .edit-form { display: flex; flex-direction: column; gap: .85rem; }
+    .edit-form label { font-size: .8rem; color: rgba(212,207,199,.7); margin-bottom: .2rem; display: block; }
+    .edit-form input, .edit-form textarea, .edit-form select {
+      width: 100%; padding: .6rem .85rem; background: var(--teal-accent);
+      border: 1px solid var(--teal-mid); border-radius: var(--radius);
+      color: var(--cream); font-size: .9rem; outline: none;
+    }
+    .edit-form input:focus, .edit-form textarea:focus, .edit-form select:focus {
+      border-color: var(--amber);
+    }
+    .edit-form textarea { resize: vertical; min-height: 80px; }
+
+    /* ── Auth gate ── */
+    #auth-gate {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    }
+    #auth-gate .card {
+      background: var(--teal-dark); border: 1px solid var(--teal-accent);
+      border-radius: var(--radius-lg); padding: 2.5rem; text-align: center; max-width: 360px;
+    }
+    #auth-gate h2 { margin-bottom: .5rem; }
+    #auth-gate p { color: rgba(212,207,199,.7); font-size: .9rem; margin-bottom: 1.5rem; }
+
+    #admin-app { display: none; }
+
+    .empty-row td {
+      text-align: center; color: rgba(212,207,199,.45);
+      padding: 2.5rem; font-size: .9rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Auth gate ──────────────────────────────────────────────────────────── -->
+<div id="auth-gate">
+  <div class="card">
+    <h2>Admin Login</h2>
+    <p>Sign in with your admin email to access the dashboard.</p>
+    <button class="btn btn-primary" style="width:100%" id="login-btn">Sign In</button>
+  </div>
+</div>
+
+<!-- ── Admin app ──────────────────────────────────────────────────────────── -->
+<div id="admin-app">
+  <header class="admin-header">
+    <div class="container">
+      <div class="admin-title">⚙ RateYourTools Admin</div>
+      <div style="display:flex;align-items:center;gap:1rem">
+        <span class="admin-user" id="admin-email-display"></span>
+        <button class="btn btn-ghost btn-sm" id="logout-btn">Sign Out</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding-top:2rem;padding-bottom:4rem">
+
+    <!-- Tab bar -->
+    <nav class="tab-bar">
+      <button class="tab-btn active" data-tab="stats">Stats</button>
+      <button class="tab-btn" data-tab="suggestions">Suggestions <span id="pending-badge"></span></button>
+      <button class="tab-btn" data-tab="tools">Tools</button>
+      <button class="tab-btn" data-tab="reviews">Reviews</button>
+    </nav>
+
+    <!-- ── Stats tab ── -->
+    <section class="tab-panel active" id="tab-stats">
+      <div class="stat-grid" id="stat-grid">
+        <div class="stat-card"><span class="n" id="s-tools">—</span><span class="label">Tools</span></div>
+        <div class="stat-card"><span class="n" id="s-reviews">—</span><span class="label">Reviews</span></div>
+        <div class="stat-card"><span class="n" id="s-brands">—</span><span class="label">Brands</span></div>
+        <div class="stat-card"><span class="n" id="s-users">—</span><span class="label">Users</span></div>
+        <div class="stat-card"><span class="n" id="s-suggestions">—</span><span class="label">Suggestions</span></div>
+        <div class="stat-card alert"><span class="n" id="s-pending">—</span><span class="label">Pending Review</span></div>
+      </div>
+    </section>
+
+    <!-- ── Suggestions tab ── -->
+    <section class="tab-panel" id="tab-suggestions">
+      <div class="toolbar">
+        <select id="sug-filter">
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Brand</th><th>Tool Name</th><th>Category</th>
+            <th>Submitted By</th><th>Date</th><th>Status</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="sug-tbody"></tbody>
+      </table>
+      <div class="pagination" id="sug-pagination"></div>
+    </section>
+
+    <!-- ── Tools tab ── -->
+    <section class="tab-panel" id="tab-tools">
+      <div class="toolbar">
+        <input type="search" id="tools-search" placeholder="Search tools or brands…">
+        <button class="btn btn-sm btn-outline" id="tools-search-btn">Search</button>
+      </div>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Brand</th><th>Tool Name</th><th>Category</th>
+            <th style="text-align:center">Reviews</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tools-tbody"></tbody>
+      </table>
+      <div class="pagination" id="tools-pagination"></div>
+    </section>
+
+    <!-- ── Reviews tab ── -->
+    <section class="tab-panel" id="tab-reviews">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Tool</th><th>User</th><th style="text-align:center">★</th>
+            <th>Preview</th><th>Date</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="rev-tbody"></tbody>
+      </table>
+      <div class="pagination" id="rev-pagination"></div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ── Edit Tool Modal ────────────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="edit-modal" role="dialog" aria-modal="true">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-header">
+      <span class="modal-title">Edit Tool</span>
+      <button class="modal-close" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <form class="edit-form" id="edit-form">
+        <input type="hidden" id="edit-id">
+        <div>
+          <label>Tool Name</label>
+          <input type="text" id="edit-name" maxlength="200" required>
+        </div>
+        <div>
+          <label>Brand</label>
+          <select id="edit-brand"></select>
+        </div>
+        <div>
+          <label>Category</label>
+          <select id="edit-category"></select>
+        </div>
+        <div>
+          <label>Description</label>
+          <textarea id="edit-description" maxlength="2000"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm modal-close">Cancel</button>
+      <button class="btn btn-primary" id="edit-save-btn">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { API, Auth, toast, openModal, closeModal, injectAuthModal } from '/js/main.js';
+
+injectAuthModal();
+
+const ADMIN_EMAIL = 'cale@dansbee.com';
+
+// ── Auth check ─────────────────────────────────────────────────────────────
+function checkAuth() {
+  if (Auth.isLoggedIn() && Auth.getEmail() === ADMIN_EMAIL) {
+    document.getElementById('auth-gate').style.display = 'none';
+    document.getElementById('admin-app').style.display = 'block';
+    document.getElementById('admin-email-display').textContent = Auth.getEmail();
+    initAdmin();
+  } else {
+    document.getElementById('auth-gate').style.display = 'flex';
+    document.getElementById('admin-app').style.display = 'none';
+  }
+}
+
+document.getElementById('login-btn').addEventListener('click', () => {
+  openModal('auth-modal');
+  // Re-check after modal closes
+  document.addEventListener('authSuccess', checkAuth, { once: true });
+});
+
+document.getElementById('logout-btn').addEventListener('click', () => {
+  Auth.clear();
+  checkAuth();
+});
+
+checkAuth();
+
+// ── Tab switching ──────────────────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ── Admin API wrapper ──────────────────────────────────────────────────────
+async function adminGet(section, params = {}) {
+  const qs = new URLSearchParams({ section, ...params }).toString();
+  return API.get(`/admin?${qs}`);
+}
+async function adminPost(section, body) {
+  return API.post(`/admin?section=${section}`, body);
+}
+async function adminPut(section, body) {
+  const res = await fetch(`/api/admin?section=${section}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${Auth.getToken()}` },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Error');
+  return data;
+}
+async function adminDelete(section, body) {
+  const res = await fetch(`/api/admin?section=${section}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${Auth.getToken()}` },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Error');
+  return data;
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+let brands = [], categories = [];
+
+async function initAdmin() {
+  loadStats();
+  loadSuggestions();
+  loadTools();
+  loadReviews();
+
+  // Prefetch brands + categories for edit modal
+  try {
+    const [bData, cData] = await Promise.all([
+      API.get('/tools', { mode: 'brands' }),
+      API.get('/tools', { mode: 'categories' }),
+    ]);
+    brands     = bData.brands     || [];
+    categories = cData.categories || [];
+  } catch {}
+
+  // Suggestions filter
+  document.getElementById('sug-filter').addEventListener('change', () => {
+    sugPage = 1; loadSuggestions();
+  });
+
+  // Tools search
+  document.getElementById('tools-search-btn').addEventListener('click', () => {
+    toolsPage = 1; loadTools();
+  });
+  document.getElementById('tools-search').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { toolsPage = 1; loadTools(); }
+  });
+
+  // Edit modal save
+  document.getElementById('edit-save-btn').addEventListener('click', saveToolEdit);
+  document.querySelectorAll('.modal-close').forEach(b =>
+    b.addEventListener('click', () => closeModal('edit-modal'))
+  );
+}
+
+// ── Stats ──────────────────────────────────────────────────────────────────
+async function loadStats() {
+  try {
+    const d = await adminGet('stats');
+    document.getElementById('s-tools').textContent       = d.tools.toLocaleString();
+    document.getElementById('s-reviews').textContent     = d.reviews.toLocaleString();
+    document.getElementById('s-brands').textContent      = d.brands.toLocaleString();
+    document.getElementById('s-users').textContent       = d.users.toLocaleString();
+    document.getElementById('s-suggestions').textContent = d.suggestions.toLocaleString();
+    document.getElementById('s-pending').textContent     = d.pending.toLocaleString();
+
+    // Pending badge on tab
+    if (d.pending > 0) {
+      document.getElementById('pending-badge').textContent = `(${d.pending})`;
+      document.getElementById('pending-badge').style.color = 'var(--red)';
+    }
+  } catch (e) { console.error(e); }
+}
+
+// ── Suggestions ────────────────────────────────────────────────────────────
+let sugPage = 1;
+
+async function loadSuggestions() {
+  const status = document.getElementById('sug-filter').value;
+  try {
+    const d = await adminGet('suggestions', { status, page: sugPage });
+    const tbody = document.getElementById('sug-tbody');
+    if (!d.suggestions.length) {
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="7">No ${status} suggestions.</td></tr>`;
+    } else {
+      tbody.innerHTML = d.suggestions.map(s => `
+        <tr data-id="${s.id}">
+          <td>${s.brand}</td>
+          <td>${s.name}</td>
+          <td class="muted">${s.category || '—'}</td>
+          <td class="muted">${s.user_email}</td>
+          <td class="muted">${s.created_at.slice(0,10)}</td>
+          <td><span class="badge badge-${s.status}">${s.status}</span></td>
+          <td>
+            ${s.status === 'pending' ? `
+              <div class="action-group">
+                <button class="btn-approve" data-id="${s.id}" data-action="approve">Approve</button>
+                <button class="btn-reject"  data-id="${s.id}" data-action="reject">Reject</button>
+              </div>` : '—'}
+          </td>
+        </tr>`).join('');
+
+      tbody.querySelectorAll('[data-action]').forEach(btn => {
+        btn.addEventListener('click', () => handleSuggestion(btn.dataset.id, btn.dataset.action));
+      });
+    }
+    renderPagination('sug-pagination', sugPage, d.total, () => { sugPage++; loadSuggestions(); },
+                                                              () => { sugPage--; loadSuggestions(); });
+  } catch (e) { console.error(e); }
+}
+
+async function handleSuggestion(id, action) {
+  try {
+    await adminPost('suggestions', { id: Number(id), action });
+    toast(action === 'approve' ? 'Tool approved and added to database.' : 'Suggestion rejected.', 'success');
+    loadSuggestions();
+    loadStats();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// ── Tools ──────────────────────────────────────────────────────────────────
+let toolsPage = 1;
+
+async function loadTools() {
+  const q = document.getElementById('tools-search').value.trim();
+  try {
+    const d = await adminGet('tools', { page: toolsPage, q });
+    const tbody = document.getElementById('tools-tbody');
+    if (!d.tools.length) {
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="5">No tools found.</td></tr>`;
+    } else {
+      tbody.innerHTML = d.tools.map(t => `
+        <tr>
+          <td class="muted">${t.brand_name || '—'}</td>
+          <td>${t.name}</td>
+          <td class="muted">${t.category_name || '—'}</td>
+          <td style="text-align:center;color:rgba(212,207,199,.55)">${t.review_count}</td>
+          <td>
+            <div class="action-group">
+              <button class="btn-edit"   data-tool='${JSON.stringify(t)}'>Edit</button>
+              <button class="btn-delete" data-id="${t.id}" data-name="${t.name}">Delete</button>
+            </div>
+          </td>
+        </tr>`).join('');
+
+      tbody.querySelectorAll('.btn-edit').forEach(btn => {
+        btn.addEventListener('click', () => openEditModal(JSON.parse(btn.dataset.tool)));
+      });
+      tbody.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', () => deleteTool(btn.dataset.id, btn.dataset.name));
+      });
+    }
+    renderPagination('tools-pagination', toolsPage, d.total, () => { toolsPage++; loadTools(); },
+                                                               () => { toolsPage--; loadTools(); });
+  } catch (e) { console.error(e); }
+}
+
+function openEditModal(tool) {
+  document.getElementById('edit-id').value          = tool.id;
+  document.getElementById('edit-name').value        = tool.name;
+  document.getElementById('edit-description').value = tool.description || '';
+
+  const bSel = document.getElementById('edit-brand');
+  bSel.innerHTML = brands.map(b =>
+    `<option value="${b.id}" ${b.id === tool.brand_id ? 'selected' : ''}>${b.name}</option>`
+  ).join('');
+
+  const cSel = document.getElementById('edit-category');
+  cSel.innerHTML = `<option value="">— No category —</option>` + categories.map(c =>
+    `<option value="${c.id}" ${c.id === tool.category_id ? 'selected' : ''}>${c.name}</option>`
+  ).join('');
+
+  openModal('edit-modal');
+}
+
+async function saveToolEdit() {
+  const id          = Number(document.getElementById('edit-id').value);
+  const name        = document.getElementById('edit-name').value.trim();
+  const brand_id    = Number(document.getElementById('edit-brand').value) || null;
+  const category_id = Number(document.getElementById('edit-category').value) || null;
+  const description = document.getElementById('edit-description').value.trim();
+  if (!name) { toast('Name is required', 'error'); return; }
+  try {
+    await adminPut('tools', { id, name, brand_id, category_id, description });
+    toast('Tool updated.', 'success');
+    closeModal('edit-modal');
+    loadTools();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function deleteTool(id, name) {
+  if (!confirm(`Delete "${name}" and all its reviews? This cannot be undone.`)) return;
+  try {
+    await adminDelete('tools', { id: Number(id) });
+    toast('Tool deleted.', 'success');
+    loadTools();
+    loadStats();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// ── Reviews ────────────────────────────────────────────────────────────────
+let revPage = 1;
+
+async function loadReviews() {
+  try {
+    const d = await adminGet('reviews', { page: revPage });
+    const tbody = document.getElementById('rev-tbody');
+    if (!d.reviews.length) {
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="6">No reviews yet.</td></tr>`;
+    } else {
+      tbody.innerHTML = d.reviews.map(r => `
+        <tr>
+          <td>
+            <div style="color:var(--amber);font-size:.75rem">${r.brand_name || ''}</div>
+            <div>${r.tool_name || '—'}</div>
+          </td>
+          <td class="muted">${r.user_email}</td>
+          <td style="text-align:center;color:var(--amber)">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</td>
+          <td class="muted" style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.body_preview}</td>
+          <td class="muted">${r.created_at.slice(0,10)}</td>
+          <td>
+            <button class="btn-delete" data-id="${r.id}">Delete</button>
+          </td>
+        </tr>`).join('');
+
+      tbody.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', () => deleteReview(btn.dataset.id));
+      });
+    }
+    renderPagination('rev-pagination', revPage, d.total, () => { revPage++; loadReviews(); },
+                                                          () => { revPage--; loadReviews(); });
+  } catch (e) { console.error(e); }
+}
+
+async function deleteReview(id) {
+  if (!confirm('Delete this review? This cannot be undone.')) return;
+  try {
+    await adminDelete('reviews', { id: Number(id) });
+    toast('Review deleted.', 'success');
+    loadReviews();
+    loadStats();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// ── Pagination helper ──────────────────────────────────────────────────────
+function renderPagination(elId, page, total, onNext, onPrev) {
+  const pages = Math.ceil(total / 50);
+  const el = document.getElementById(elId);
+  if (pages <= 1) { el.innerHTML = ''; return; }
+  el.innerHTML = `
+    <button ${page <= 1 ? 'disabled' : ''} id="${elId}-prev">← Prev</button>
+    <span>Page ${page} of ${pages} &nbsp;·&nbsp; ${total} total</span>
+    <button ${page >= pages ? 'disabled' : ''} id="${elId}-next">Next →</button>
+  `;
+  el.querySelector(`#${elId}-prev`)?.addEventListener('click', onPrev);
+  el.querySelector(`#${elId}-next`)?.addEventListener('click', onNext);
+}
+</script>
+</body>
+</html>
