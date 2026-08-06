@@ -22,7 +22,9 @@ export const API = {
   async get(path, params = {}) {
     const url = new URL(this.base + path, location.origin);
     Object.entries(params).forEach(([k, v]) => v !== undefined && v !== '' && url.searchParams.set(k, v));
-    const res = await fetch(url);
+    const headers = {};
+    if (Auth.getToken()) headers['Authorization'] = `Bearer ${Auth.getToken()}`;
+    const res = await fetch(url, { headers });
     if (!res.ok) throw new Error((await res.json()).error || `HTTP ${res.status}`);
     return res.json();
   },
