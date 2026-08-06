@@ -204,5 +204,45 @@ export async function onRequest({ request, env }) {
     }
   }
 
+  // ── Users ───────────────────────────────────────────────────────────────────
+  if (section === 'users') {
+    if (method === 'GET') {
+      const page   = Math.max(1, Number(url.searchParams.get('page') || 1));
+      const q      = url.searchParams.get('q') || '';
+      const offset = (page - 1) * PAGE_SIZE;
+      const like   = `%${q}%`;
+      const rows = await env.DB.prepare(`
+        SELECT u.email, u.verified, u.created_at,
+               COUNT(r.id) AS review_count
+        FROM users u
+        LEFT JOIN reviews r ON r.user_email = u.email
+        WHERE u.email LIKE ?
+        GROUP BY u.email
+        ORDER BY u.created_at DESC
+        LIMIT ? OFFSET ?
+      `).bind(like, PAGE_SIZE, offset).all();
+      const total = await env.DB.prepare(
+        `SELECT COUNT(*) as n FROM users WHERE email LIKE ?`
+      ).bind(like).first();
+      return json({ users: rows.results, total: total.n, page });
+    }
+
+    if (method === 'DELETE') {
+      const { email } = await request.json();
+      if (!email) return err('email required');
+      // Cascade: delete helpful votes → reviews → tokens → user
+      const reviews = await env.DB.prepare(
+        'SELECT id FROM reviews WHERE user_email = ?'
+      ).bind(email).all();
+      for (const rev of reviews.results) {
+        await env.DB.prepare('DELETE FROM helpful_votes WHERE review_id = ?').bind(rev.id).run();
+      }
+      await env.DB.prepare('DELETE FROM reviews WHERE user_email = ?').bind(email).run();
+      await env.DB.prepare('DELETE FROM verification_tokens WHERE email = ?').bind(email).run();
+      await env.DB.prepare('DELETE FROM users WHERE email = ?').bind(email).run();
+      return json({ ok: true });
+    }
+  }
+
   return err('Unknown section', 404);
 }

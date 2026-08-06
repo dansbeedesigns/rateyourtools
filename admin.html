@@ -192,6 +192,7 @@
       <button class="tab-btn" data-tab="suggestions">Suggestions <span id="pending-badge"></span></button>
       <button class="tab-btn" data-tab="tools">Tools</button>
       <button class="tab-btn" data-tab="reviews">Reviews</button>
+      <button class="tab-btn" data-tab="users">Users</button>
     </nav>
 
     <!-- ── Stats tab ── -->
@@ -257,6 +258,27 @@
         <tbody id="rev-tbody"></tbody>
       </table>
       <div class="pagination" id="rev-pagination"></div>
+    </section>
+
+    <!-- ── Users tab ── -->
+    <section class="tab-panel" id="tab-users">
+      <div class="toolbar">
+        <input type="search" id="users-search" placeholder="Search by email…">
+        <button class="btn btn-sm btn-outline" id="users-search-btn">Search</button>
+      </div>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th style="text-align:center">Verified</th>
+            <th style="text-align:center">Reviews</th>
+            <th>Joined</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="users-tbody"></tbody>
+      </table>
+      <div class="pagination" id="users-pagination"></div>
     </section>
 
   </main>
@@ -377,6 +399,7 @@ async function initAdmin() {
   loadSuggestions();
   loadTools();
   loadReviews();
+  loadUsers();
 
   // Prefetch brands + categories for edit modal
   try {
@@ -399,6 +422,14 @@ async function initAdmin() {
   });
   document.getElementById('tools-search').addEventListener('keydown', e => {
     if (e.key === 'Enter') { toolsPage = 1; loadTools(); }
+  });
+
+  // Users search
+  document.getElementById('users-search-btn').addEventListener('click', () => {
+    usersPage = 1; loadUsers();
+  });
+  document.getElementById('users-search').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { usersPage = 1; loadUsers(); }
   });
 
   // Edit modal save
@@ -603,6 +634,55 @@ async function deleteReview(id) {
     await adminDelete('reviews', { id: Number(id) });
     toast('Review deleted.', 'success');
     loadReviews();
+    loadStats();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// ── Users ──────────────────────────────────────────────────────────────────
+let usersPage = 1;
+
+async function loadUsers() {
+  const q = document.getElementById('users-search').value.trim();
+  try {
+    const d = await adminGet('users', { page: usersPage, q });
+    const tbody = document.getElementById('users-tbody');
+    if (!d.users.length) {
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="5">No users found.</td></tr>`;
+    } else {
+      tbody.innerHTML = d.users.map(u => `
+        <tr>
+          <td>${u.email}</td>
+          <td style="text-align:center">${u.verified ? '✓' : '—'}</td>
+          <td style="text-align:center;color:rgba(212,207,199,.55)">${u.review_count}</td>
+          <td class="muted">${u.created_at.slice(0, 10)}</td>
+          <td>
+            <button class="btn-delete" data-email="${u.email}" data-reviews="${u.review_count}">Delete</button>
+          </td>
+        </tr>`).join('');
+
+      tbody.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', () => deleteUser(btn.dataset.email, Number(btn.dataset.reviews)));
+      });
+    }
+    renderPagination('users-pagination', usersPage, d.total,
+      () => { usersPage++; loadUsers(); },
+      () => { usersPage--; loadUsers(); });
+  } catch (e) { console.error(e); }
+}
+
+async function deleteUser(email, reviewCount) {
+  const reviewNote = reviewCount > 0 ? ` and their ${reviewCount} review${reviewCount !== 1 ? 's' : ''}` : '';
+  if (!confirm(`Delete ${email}${reviewNote}? This cannot be undone.`)) return;
+  try {
+    const res = await fetch(`/api/admin?section=users`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${Auth.getToken()}` },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Error');
+    toast(`${email} deleted.`, 'success');
+    loadUsers();
     loadStats();
   } catch (e) { toast(e.message, 'error'); }
 }
