@@ -470,21 +470,31 @@ async function handleSuggestion(id, action) {
     toast(action === 'approve' ? 'Tool approved and added to database.' : 'Suggestion rejected.', 'success');
     loadSuggestions();
     loadStats();
+    if (action === 'approve') {
+      // Refresh brands/tools so the new entry is editable immediately
+      loadTools();
+      try {
+        const bData = await API.get('/tools', { mode: 'brands' });
+        brands = bData.brands || [];
+      } catch {}
+    }
   } catch (e) { toast(e.message, 'error'); }
 }
 
 // ── Tools ──────────────────────────────────────────────────────────────────
 let toolsPage = 1;
+let toolsList  = []; // in-memory reference avoids JSON-in-attribute quoting issues
 
 async function loadTools() {
   const q = document.getElementById('tools-search').value.trim();
   try {
     const d = await adminGet('tools', { page: toolsPage, q });
+    toolsList = d.tools;
     const tbody = document.getElementById('tools-tbody');
     if (!d.tools.length) {
       tbody.innerHTML = `<tr class="empty-row"><td colspan="5">No tools found.</td></tr>`;
     } else {
-      tbody.innerHTML = d.tools.map(t => `
+      tbody.innerHTML = d.tools.map((t, i) => `
         <tr>
           <td class="muted">${t.brand_name || '—'}</td>
           <td>${t.name}</td>
@@ -492,14 +502,14 @@ async function loadTools() {
           <td style="text-align:center;color:rgba(212,207,199,.55)">${t.review_count}</td>
           <td>
             <div class="action-group">
-              <button class="btn-edit"   data-tool='${JSON.stringify(t)}'>Edit</button>
+              <button class="btn-edit"   data-idx="${i}">Edit</button>
               <button class="btn-delete" data-id="${t.id}" data-name="${t.name}">Delete</button>
             </div>
           </td>
         </tr>`).join('');
 
       tbody.querySelectorAll('.btn-edit').forEach(btn => {
-        btn.addEventListener('click', () => openEditModal(JSON.parse(btn.dataset.tool)));
+        btn.addEventListener('click', () => openEditModal(toolsList[Number(btn.dataset.idx)]));
       });
       tbody.querySelectorAll('.btn-delete').forEach(btn => {
         btn.addEventListener('click', () => deleteTool(btn.dataset.id, btn.dataset.name));
