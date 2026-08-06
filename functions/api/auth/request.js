@@ -110,9 +110,9 @@ function emailHtml(verifyUrl) {
         </tr>
         <tr>
           <td style="padding:16px 32px;border-top:1px solid #1e4444;">
-            <p style="margin:0;font-size:11px;color:#2D6A6A;">
+            <p style="margin:0;font-size:11px;color:#8ab8b8;">
               If you didn't request this, you can safely ignore this email.
-              Part of the <a href="https://dansbeedesigns.com" style="color:#2D6A6A;">Dansbee Designs</a> family of woodworking sites.
+              Part of the <a href="https://dansbeedesigns.com" style="color:#8ab8b8;">Dansbee Designs</a> family of woodworking sites.
             </p>
           </td>
         </tr>
