@@ -53,8 +53,9 @@ export async function onRequestGet({ request, env }) {
     let params = [];
 
     if (q) {
-      where.push(`(t.name LIKE ? OR b.name LIKE ?)`);
-      params.push(`%${q}%`, `%${q}%`);
+      // Search name, brand, or combined "Brand Name" so "DeWalt dw735x" finds "DeWalt DW735X Planer"
+      where.push(`(t.name LIKE ? OR b.name LIKE ? OR (b.name || ' ' || t.name) LIKE ?)`);
+      params.push(`%${q}%`, `%${q}%`, `%${q}%`);
     }
     if (category) {
       where.push(`c.slug = ?`);

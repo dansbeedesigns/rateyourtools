@@ -170,14 +170,14 @@ export async function onRequest({ request, env }) {
         LEFT JOIN brands b     ON b.id = t.brand_id
         LEFT JOIN categories c ON c.id = t.category_id
         LEFT JOIN reviews r    ON r.tool_id = t.id
-        WHERE t.name LIKE ? OR b.name LIKE ?
+        WHERE t.name LIKE ? OR b.name LIKE ? OR (b.name || ' ' || t.name) LIKE ?
         GROUP BY t.id
         ORDER BY t.name
         LIMIT ? OFFSET ?
-      `).bind(like, like, PAGE_SIZE, offset).all();
+      `).bind(like, like, like, PAGE_SIZE, offset).all();
       const total = await env.DB.prepare(
-        `SELECT COUNT(*) as n FROM tools t LEFT JOIN brands b ON b.id = t.brand_id WHERE t.name LIKE ? OR b.name LIKE ?`
-      ).bind(like, like).first();
+        `SELECT COUNT(*) as n FROM tools t LEFT JOIN brands b ON b.id = t.brand_id WHERE t.name LIKE ? OR b.name LIKE ? OR (b.name || ' ' || t.name) LIKE ?`
+      ).bind(like, like, like).first();
       return json({ tools: rows.results, total: total.n, page });
     }
 
