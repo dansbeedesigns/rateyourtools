@@ -100,15 +100,15 @@
         <a href="https://dansbeedesigns.com" target="_blank" rel="noopener">Dansbee Designs</a>
         <a href="https://woodworkersnearme.org" target="_blank" rel="noopener">Woodworkers Near Me</a>
         <a href="https://woodfinish.org" target="_blank" rel="noopener">WoodFinish.org</a>
-        <a href="https://knowyourwood.com" target="_blank" rel="noopener">Know Your Wood</a>
-        <a href="https://myshoplayout.com" target="_blank" rel="noopener">MyShopLayout</a>
+        <a href="https://knowyourwood.org" target="_blank" rel="noopener">Know Your Wood</a>
+        <a href="https://myshoplayout.org" target="_blank" rel="noopener">MyShopLayout</a>
       </div>
     </div>
   </div>
 </footer>
 
 <script type="module">
-import { API, renderStars, getParam } from '/js/main.js';
+import { API, renderStars, getParam, initSearchTypeahead } from '/js/main.js';
 
 const LIMIT = 20;
 let offset  = 0;
@@ -136,17 +136,18 @@ const sortLabel = { top: 'Top Rated Tools', worst: 'Worst Rated Tools', newest: 
 document.getElementById('page-heading').textContent =
   q ? `Search: "${q}"` : sortLabel[sort] || 'Browse Tools';
 
-// ── Search bar ─────────────────────────────────────────────────────────
-if (q) document.getElementById('search-input').value = q;
+// ── Search bar with typeahead ───────────────────────────────────────────
+const searchInput = document.getElementById('search-input');
+if (q) searchInput.value = q;
 const doSearch = () => {
-  const val = document.getElementById('search-input').value.trim();
+  const val = searchInput.value.trim();
   const newUrl = new URL('/browse.html', location.origin);
   if (val) newUrl.searchParams.set('q', val);
   if (sort !== 'newest') newUrl.searchParams.set('sort', sort);
   location.href = newUrl.toString();
 };
+initSearchTypeahead(searchInput, doSearch);
 document.getElementById('search-btn').addEventListener('click', doSearch);
-document.getElementById('search-input').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
 
 // ── Load filters ───────────────────────────────────────────────────────
 async function loadFilters() {

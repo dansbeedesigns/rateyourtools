@@ -257,3 +257,80 @@ export function formatDate(iso) {
 export function slugify(str) {
   return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
+
+// ── Search typeahead ──────────────────────────────────────────────────────
+// Wraps the <input> in a .search-bar-wrap and appends a dropdown.
+// onSubmit(q) is called when the user presses Enter or clicks Search.
+export function initSearchTypeahead(input, onSubmit) {
+  // Wrap input
+  const wrap = document.createElement('div');
+  wrap.className = 'search-bar-wrap';
+  input.parentNode.insertBefore(wrap, input);
+  wrap.appendChild(input);
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'search-dropdown';
+  dropdown.style.display = 'none';
+  wrap.appendChild(dropdown);
+
+  let timeout, activeIndex = -1, lastResults = [];
+
+  function hide() { dropdown.style.display = 'none'; activeIndex = -1; }
+  function show() { dropdown.style.display = 'block'; }
+
+  function render(tools, q) {
+    lastResults = tools;
+    activeIndex = -1;
+    if (!tools.length) { hide(); return; }
+    dropdown.innerHTML = tools.map((t, i) => `
+      <a href="/tool.html?slug=${t.slug}" class="search-dropdown-item" data-index="${i}">
+        <span class="search-dropdown-brand">${t.brand_name || ''}</span>
+        <span class="search-dropdown-name">${t.name}</span>
+        <span class="search-dropdown-cat">${t.category_name || ''}</span>
+      </a>
+    `).join('') + `<a href="/browse.html?q=${encodeURIComponent(q)}" class="search-dropdown-all">See all results →</a>`;
+
+    dropdown.querySelectorAll('.search-dropdown-item').forEach(el => {
+      el.addEventListener('mousedown', e => e.preventDefault()); // keep focus on input
+    });
+    show();
+  }
+
+  function updateActive(newIndex) {
+    const items = dropdown.querySelectorAll('.search-dropdown-item');
+    items.forEach(el => el.classList.remove('active'));
+    activeIndex = Math.max(-1, Math.min(newIndex, items.length - 1));
+    if (activeIndex >= 0) items[activeIndex].classList.add('active');
+  }
+
+  input.addEventListener('input', () => {
+    const q = input.value.trim();
+    clearTimeout(timeout);
+    if (q.length < 2) { hide(); return; }
+    timeout = setTimeout(async () => {
+      try {
+        const { tools } = await API.get('/tools', { q, limit: 8 });
+        render(tools, q);
+      } catch { hide(); }
+    }, 220);
+  });
+
+  input.addEventListener('keydown', e => {
+    const items = dropdown.querySelectorAll('.search-dropdown-item');
+    if (e.key === 'ArrowDown')  { e.preventDefault(); updateActive(activeIndex + 1); }
+    if (e.key === 'ArrowUp')    { e.preventDefault(); updateActive(activeIndex - 1); }
+    if (e.key === 'Escape')     { hide(); }
+    if (e.key === 'Enter') {
+      if (activeIndex >= 0 && items[activeIndex]) {
+        e.preventDefault();
+        location.href = items[activeIndex].href;
+      } else {
+        hide();
+        onSubmit(input.value.trim());
+      }
+    }
+  });
+
+  input.addEventListener('blur', () => setTimeout(hide, 150));
+  input.addEventListener('focus', () => { if (lastResults.length) show(); });
+}

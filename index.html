@@ -208,8 +208,8 @@
         <a href="https://dansbeedesigns.com" target="_blank" rel="noopener">Dansbee Designs</a>
         <a href="https://woodworkersnearme.org" target="_blank" rel="noopener">Woodworkers Near Me</a>
         <a href="https://woodfinish.org" target="_blank" rel="noopener">WoodFinish.org</a>
-        <a href="https://knowyourwood.com" target="_blank" rel="noopener">Know Your Wood</a>
-        <a href="https://myshoplayout.com" target="_blank" rel="noopener">MyShopLayout</a>
+        <a href="https://knowyourwood.org" target="_blank" rel="noopener">Know Your Wood</a>
+        <a href="https://myshoplayout.org" target="_blank" rel="noopener">MyShopLayout</a>
       </div>
     </div>
   </div>
@@ -300,7 +300,7 @@
 </div>
 
 <script type="module">
-import { API, Auth, toast, openModal, closeModal, requireAuth, injectAuthModal, renderStars, initInteractiveStars, getParam } from '/js/main.js';
+import { API, Auth, toast, openModal, closeModal, requireAuth, injectAuthModal, renderStars, initInteractiveStars, getParam, initSearchTypeahead } from '/js/main.js';
 
 injectAuthModal();
 
@@ -376,13 +376,15 @@ async function loadRankings() {
   }
 }
 
-// ── Search ─────────────────────────────────────────────────────────────
-document.getElementById('search-btn').addEventListener('click', doSearch);
-document.getElementById('search-input').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
-function doSearch() {
-  const q = document.getElementById('search-input').value.trim();
+// ── Search with typeahead ──────────────────────────────────────────────────
+const searchInput = document.getElementById('search-input');
+initSearchTypeahead(searchInput, q => {
   if (q) location.href = `/browse.html?q=${encodeURIComponent(q)}`;
-}
+});
+document.getElementById('search-btn').addEventListener('click', () => {
+  const q = searchInput.value.trim();
+  if (q) location.href = `/browse.html?q=${encodeURIComponent(q)}`;
+});
 
 // ── Write Review flow ──────────────────────────────────────────────────
 let selectedTool = null;
