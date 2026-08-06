@@ -74,8 +74,10 @@ export async function onRequestGet({ request, env }) {
       newest: `t.created_at DESC`,
     }[sort] || `t.created_at DESC`;
 
-    const havingClause = (sort === 'top' || sort === 'worst')
-      ? `HAVING review_count >= 1` : '';
+    const havingClause =
+      sort === 'top'   ? `HAVING review_count >= 1 AND ROUND(AVG(r.rating), 1) >= 3.5` :
+      sort === 'worst' ? `HAVING review_count >= 1 AND ROUND(AVG(r.rating), 1) <= 2.5` :
+      '';
 
     const sql = `
       SELECT t.id, t.name, t.slug, t.description, t.image_url, t.created_at,

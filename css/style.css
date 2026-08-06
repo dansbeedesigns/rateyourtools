@@ -190,7 +190,6 @@ h4 { font-size: 1rem; letter-spacing: 2px; }
   padding: 5rem 0 4rem;
   text-align: center;
   position: relative;
-  overflow: hidden;
 }
 .hero::before {
   content: '';
