@@ -1,7 +1,7 @@
 // PUT    /api/reviews/:id  — update a review (auth required, must be owner)
 // DELETE /api/reviews/:id  — delete a review (auth required, must be owner)
 
-import { verifySession } from '../../../_auth.js';
+import { verifySession } from '../../_auth.js';
 
 // ── PUT ────────────────────────────────────────────────────────────────────
 export async function onRequestPut({ request, env, params }) {
