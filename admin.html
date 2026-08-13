@@ -212,6 +212,7 @@
     <section class="tab-panel" id="tab-suggestions">
       <div class="toolbar">
         <select id="sug-filter">
+          <option value="">All</option>
           <option value="pending">Pending</option>
           <option value="approved">Approved</option>
           <option value="rejected">Rejected</option>
@@ -404,13 +405,28 @@ document.getElementById('logout-btn').addEventListener('click', () => {
 checkAuth();
 
 // ── Tab switching ──────────────────────────────────────────────────────────
+const TAB_LOADERS = {
+  stats:       () => loadStats(),
+  suggestions: () => loadSuggestions(),
+  tools:       () => loadTools(),
+  reviews:     () => loadReviews(),
+  users:       () => loadUsers(),
+  settings:    () => loadSettings(),
+};
+
+function activateTab(name, reload = true) {
+  const target = document.querySelector(`.tab-btn[data-tab="${name}"]`);
+  if (!target) return;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  target.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  if (reload && TAB_LOADERS[name]) TAB_LOADERS[name]();
+  location.hash = name;
+}
+
 document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-  });
+  btn.addEventListener('click', () => activateTab(btn.dataset.tab));
 });
 
 // ── Admin API wrapper ──────────────────────────────────────────────────────
@@ -446,13 +462,6 @@ async function adminDelete(section, body) {
 let brands = [], categories = [];
 
 async function initAdmin() {
-  loadStats();
-  loadSuggestions();
-  loadTools();
-  loadReviews();
-  loadUsers();
-  loadSettings();
-
   // Prefetch brands + categories for edit modal
   try {
     const [bData, cData] = await Promise.all([
@@ -489,6 +498,11 @@ async function initAdmin() {
   document.querySelectorAll('.modal-close').forEach(b =>
     b.addEventListener('click', () => closeModal('edit-modal'))
   );
+
+  // Activate tab from URL hash (e.g. /admin.html#reviews from notification emails)
+  // Falls back to 'stats' if hash is missing or invalid
+  const hashTab = location.hash.replace('#', '');
+  activateTab(TAB_LOADERS[hashTab] ? hashTab : 'stats');
 }
 
 // ── Stats ──────────────────────────────────────────────────────────────────
@@ -515,11 +529,13 @@ let sugPage = 1;
 
 async function loadSuggestions() {
   const status = document.getElementById('sug-filter').value;
+  const params = status ? { status, page: sugPage } : { page: sugPage };
   try {
-    const d = await adminGet('suggestions', { status, page: sugPage });
+    const d = await adminGet('suggestions', params);
     const tbody = document.getElementById('sug-tbody');
+    const label = status || 'matching';
     if (!d.suggestions.length) {
-      tbody.innerHTML = `<tr class="empty-row"><td colspan="7">No ${status} suggestions.</td></tr>`;
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="7">No ${status ? status : ''} suggestions found.</td></tr>`;
     } else {
       tbody.innerHTML = d.suggestions.map(s => `
         <tr data-id="${s.id}">

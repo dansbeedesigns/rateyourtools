@@ -68,15 +68,22 @@ export async function onRequest({ request, env }) {
   // ── Suggestions ────────────────────────────────────────────────────────────
   if (section === 'suggestions') {
     if (method === 'GET') {
-      const status = url.searchParams.get('status') || 'pending';
+      const status = url.searchParams.get('status') || '';
       const page   = Math.max(1, Number(url.searchParams.get('page') || 1));
       const offset = (page - 1) * PAGE_SIZE;
+      const validStatuses = ['pending', 'approved', 'rejected'];
+      const filterByStatus = validStatuses.includes(status);
+      const whereClause = filterByStatus ? 'WHERE status = ?' : '';
+      const bindParams = filterByStatus
+        ? [status, PAGE_SIZE, offset]
+        : [PAGE_SIZE, offset];
+      const countParams = filterByStatus ? [status] : [];
       const rows = await env.DB.prepare(
-        `SELECT * FROM tool_suggestions WHERE status = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`
-      ).bind(status, PAGE_SIZE, offset).all();
+        `SELECT * FROM tool_suggestions ${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`
+      ).bind(...bindParams).all();
       const total = await env.DB.prepare(
-        `SELECT COUNT(*) as n FROM tool_suggestions WHERE status = ?`
-      ).bind(status).first();
+        `SELECT COUNT(*) as n FROM tool_suggestions ${whereClause}`
+      ).bind(...countParams).first();
       return json({ suggestions: rows.results, total: total.n, page });
     }
 
