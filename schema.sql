@@ -122,6 +122,12 @@ CREATE TABLE IF NOT EXISTS helpful_votes (
   PRIMARY KEY (review_id, user_email)
 );
 
+-- ─── Site Settings (admin key-value store) ───────────────────────────────────
+CREATE TABLE IF NOT EXISTS settings (
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL DEFAULT ''
+);
+
 -- ─── Tool Suggestions (crowdsourced additions) ───────────────────────────────
 CREATE TABLE IF NOT EXISTS tool_suggestions (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,

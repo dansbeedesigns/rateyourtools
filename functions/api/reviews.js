@@ -67,6 +67,13 @@ export async function onRequestPost({ request, env }) {
     ).bind(tool_id, session.email).first();
     if (existing) return error('You have already reviewed this tool. Edit your existing review instead.', 409);
 
+    // Fetch tool name for the notification email
+    const toolDetails = await env.DB.prepare(`
+      SELECT t.name AS tool_name, b.name AS brand_name
+      FROM tools t LEFT JOIN brands b ON b.id = t.brand_id
+      WHERE t.id = ?
+    `).bind(tool_id).first();
+
     const result = await env.DB.prepare(`
       INSERT INTO reviews (tool_id, user_email, rating, title, body, media_urls)
       VALUES (?, ?, ?, ?, ?, ?)
@@ -79,10 +86,96 @@ export async function onRequestPost({ request, env }) {
       JSON.stringify(media_urls)
     ).run();
 
+    // Fire-and-forget notification email (errors are swallowed so the review still saves)
+    sendReviewNotification(env, {
+      id:         result.meta.last_row_id,
+      tool_id,
+      tool_name:  toolDetails?.tool_name  || `Tool #${tool_id}`,
+      brand_name: toolDetails?.brand_name || '',
+      user_email: session.email,
+      rating:     Number(rating),
+      title:      (title || '').trim().slice(0, 120) || null,
+      body:       reviewBody.trim(),
+    }).catch(() => {});
+
     return json({ id: result.meta.last_row_id }, 201);
   } catch (err) {
     return error(err.message, 500);
   }
+}
+
+// ── Review notification ────────────────────────────────────────────────────
+async function sendReviewNotification(env, review) {
+  // Read both settings in one query
+  const rows = await env.DB.prepare(
+    `SELECT key, value FROM settings WHERE key IN ('notify_on_review', 'notify_email')`
+  ).all();
+  const settings = Object.fromEntries((rows.results || []).map(r => [r.key, r.value]));
+
+  if (settings.notify_on_review !== '1') return;
+  const toEmail = (settings.notify_email || '').trim();
+  if (!toEmail) return;
+
+  const stars    = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+  const toolLine = review.brand_name
+    ? `${review.brand_name} — ${review.tool_name}`
+    : review.tool_name;
+  const titleLine = review.title ? `<h3 style="margin:0 0 8px">${review.title}</h3>` : '';
+  const siteUrl   = (env.SITE_URL || 'https://rateyourtools.org').replace(/\/$/, '');
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1a1a1a">
+      <div style="background:#0f3d3d;padding:20px 24px;border-radius:8px 8px 0 0">
+        <p style="margin:0;color:#e8913a;font-size:13px;letter-spacing:2px;text-transform:uppercase;font-weight:700">
+          RateYourTools.org
+        </p>
+        <h2 style="margin:8px 0 0;color:#f5f0e8;font-size:20px">New Review Submitted</h2>
+      </div>
+      <div style="background:#f9f6f0;padding:24px;border-radius:0 0 8px 8px">
+        <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
+          <tr>
+            <td style="padding:6px 0;color:#666;font-size:13px;width:90px">Tool</td>
+            <td style="padding:6px 0;font-weight:600">${toolLine}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#666;font-size:13px">Rating</td>
+            <td style="padding:6px 0;color:#e8913a;font-size:18px">${stars}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#666;font-size:13px">Reviewer</td>
+            <td style="padding:6px 0">${review.user_email}</td>
+          </tr>
+        </table>
+        <div style="background:#fff;border:1px solid #ddd;border-radius:6px;padding:16px">
+          ${titleLine}
+          <p style="margin:0;line-height:1.6;color:#333">${review.body.replace(/\n/g, '<br>')}</p>
+        </div>
+        <div style="margin-top:20px;text-align:center">
+          <a href="${siteUrl}/admin.html#reviews"
+             style="background:#0f3d3d;color:#e8913a;padding:10px 24px;border-radius:6px;
+                    text-decoration:none;font-size:14px;font-weight:600;letter-spacing:1px">
+            View in Admin →
+          </a>
+        </div>
+        <p style="margin-top:20px;font-size:11px;color:#999;text-align:center">
+          You can turn off these notifications in the Admin → Settings tab.
+        </p>
+      </div>
+    </div>`;
+
+  await fetch('https://api.resend.com/emails', {
+    method:  'POST',
+    headers: {
+      'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+      'Content-Type':  'application/json',
+    },
+    body: JSON.stringify({
+      from:    env.FROM_EMAIL,
+      to:      toEmail,
+      subject: `New review: ${toolLine} (${review.rating}/5 ★)`,
+      html,
+    }),
+  });
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────

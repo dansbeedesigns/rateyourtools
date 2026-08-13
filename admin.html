@@ -193,6 +193,7 @@
       <button class="tab-btn" data-tab="tools">Tools</button>
       <button class="tab-btn" data-tab="reviews">Reviews</button>
       <button class="tab-btn" data-tab="users">Users</button>
+      <button class="tab-btn" data-tab="settings">Settings</button>
     </nav>
 
     <!-- ── Stats tab ── -->
@@ -258,6 +259,56 @@
         <tbody id="rev-tbody"></tbody>
       </table>
       <div class="pagination" id="rev-pagination"></div>
+    </section>
+
+    <!-- ── Settings tab ── -->
+    <section class="tab-panel" id="tab-settings">
+      <div style="max-width:520px">
+        <h3 style="font-family:var(--font-display);color:var(--cream);margin-bottom:1.5rem;font-size:1.1rem">
+          Review Notifications
+        </h3>
+        <div style="background:var(--teal-dark);border:1px solid var(--teal-accent);border-radius:var(--radius-lg);padding:1.75rem;display:flex;flex-direction:column;gap:1.25rem">
+
+          <!-- Toggle row -->
+          <label style="display:flex;align-items:center;gap:1rem;cursor:pointer">
+            <div style="position:relative;width:44px;height:24px;flex-shrink:0">
+              <input type="checkbox" id="notify-toggle" style="opacity:0;width:0;height:0;position:absolute">
+              <span id="notify-track" style="
+                position:absolute;inset:0;border-radius:999px;
+                background:var(--teal-accent);border:1px solid var(--teal-mid);
+                transition:background .2s;cursor:pointer;
+              "></span>
+              <span id="notify-thumb" style="
+                position:absolute;top:3px;left:3px;width:16px;height:16px;
+                border-radius:50%;background:rgba(212,207,199,.55);
+                transition:transform .2s,background .2s;pointer-events:none;
+              "></span>
+            </div>
+            <div>
+              <div style="color:var(--cream);font-size:.9rem;font-weight:600">Email me on new reviews</div>
+              <div style="color:rgba(212,207,199,.55);font-size:.8rem;margin-top:.15rem">
+                Sends one email per review. You can turn this off anytime.
+              </div>
+            </div>
+          </label>
+
+          <!-- Email input -->
+          <div id="notify-email-row">
+            <label style="font-size:.8rem;color:rgba(212,207,199,.7);display:block;margin-bottom:.4rem">
+              Notification email address
+            </label>
+            <input type="email" id="notify-email"
+              placeholder="you@example.com"
+              style="width:100%;padding:.6rem .85rem;background:var(--teal-accent);
+                     border:1px solid var(--teal-mid);border-radius:var(--radius);
+                     color:var(--cream);font-size:.9rem;outline:none;box-sizing:border-box">
+          </div>
+
+          <div style="display:flex;justify-content:flex-end">
+            <button class="btn btn-primary" id="settings-save-btn">Save Settings</button>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- ── Users tab ── -->
@@ -400,6 +451,7 @@ async function initAdmin() {
   loadTools();
   loadReviews();
   loadUsers();
+  loadSettings();
 
   // Prefetch brands + categories for edit modal
   try {
@@ -686,6 +738,51 @@ async function deleteUser(email, reviewCount) {
     loadStats();
   } catch (e) { toast(e.message, 'error'); }
 }
+
+// ── Settings ───────────────────────────────────────────────────────────────
+function updateToggleVisuals(enabled) {
+  const track = document.getElementById('notify-track');
+  const thumb = document.getElementById('notify-thumb');
+  const row   = document.getElementById('notify-email-row');
+  if (enabled) {
+    track.style.background       = 'var(--amber)';
+    track.style.borderColor      = 'var(--amber)';
+    thumb.style.background       = '#fff';
+    thumb.style.transform        = 'translateX(20px)';
+    row.style.opacity            = '1';
+    row.style.pointerEvents      = 'auto';
+  } else {
+    track.style.background       = 'var(--teal-accent)';
+    track.style.borderColor      = 'var(--teal-mid)';
+    thumb.style.background       = 'rgba(212,207,199,.55)';
+    thumb.style.transform        = 'translateX(0)';
+    row.style.opacity            = '.45';
+    row.style.pointerEvents      = 'none';
+  }
+}
+
+async function loadSettings() {
+  try {
+    const d = await adminGet('settings');
+    document.getElementById('notify-toggle').checked = !!d.notify_on_review;
+    document.getElementById('notify-email').value    = d.notify_email || '';
+    updateToggleVisuals(!!d.notify_on_review);
+  } catch (e) { console.error('Settings load failed', e); }
+}
+
+document.getElementById('notify-toggle').addEventListener('change', function () {
+  updateToggleVisuals(this.checked);
+});
+
+document.getElementById('settings-save-btn').addEventListener('click', async () => {
+  const enabled = document.getElementById('notify-toggle').checked;
+  const email   = document.getElementById('notify-email').value.trim();
+  if (enabled && !email) { toast('Enter an email address first.', 'error'); return; }
+  try {
+    await adminPut('settings', { notify_on_review: enabled, notify_email: email });
+    toast('Settings saved.', 'success');
+  } catch (e) { toast(e.message, 'error'); }
+});
 
 // ── Pagination helper ──────────────────────────────────────────────────────
 function renderPagination(elId, page, total, onNext, onPrev) {

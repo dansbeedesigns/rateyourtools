@@ -10,6 +10,8 @@
  * GET    /api/admin?section=tools[&page=1&q=]
  * PUT    /api/admin?section=tools        { id, name, description, brand_id, category_id }
  * DELETE /api/admin?section=tools        { id }
+ * GET    /api/admin?section=settings
+ * PUT    /api/admin?section=settings     { notify_on_review: bool, notify_email: string }
  */
 
 import { verifySession } from '../_auth.js';
@@ -240,6 +242,36 @@ export async function onRequest({ request, env }) {
       await env.DB.prepare('DELETE FROM reviews WHERE user_email = ?').bind(email).run();
       await env.DB.prepare('DELETE FROM verification_tokens WHERE email = ?').bind(email).run();
       await env.DB.prepare('DELETE FROM users WHERE email = ?').bind(email).run();
+      return json({ ok: true });
+    }
+  }
+
+  // ── Settings ────────────────────────────────────────────────────────────────
+  if (section === 'settings') {
+    if (method === 'GET') {
+      const rows = await env.DB.prepare('SELECT key, value FROM settings').all();
+      const settings = Object.fromEntries((rows.results || []).map(r => [r.key, r.value]));
+      return json({
+        notify_on_review: settings.notify_on_review === '1',
+        notify_email:     settings.notify_email || '',
+      });
+    }
+
+    if (method === 'PUT') {
+      const { notify_on_review, notify_email } = await request.json();
+      const notifyVal = notify_on_review ? '1' : '0';
+      const emailVal  = (notify_email || '').trim();
+
+      await env.DB.prepare(
+        `INSERT INTO settings (key, value) VALUES ('notify_on_review', ?)
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value`
+      ).bind(notifyVal).run();
+
+      await env.DB.prepare(
+        `INSERT INTO settings (key, value) VALUES ('notify_email', ?)
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value`
+      ).bind(emailVal).run();
+
       return json({ ok: true });
     }
   }
