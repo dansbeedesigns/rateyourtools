@@ -14,7 +14,7 @@ export async function onRequestGet({ request, env }) {
 
     const reviews = await env.DB.prepare(`
       SELECT r.id, r.tool_id, r.user_email, r.rating,
-             r.title, r.body, r.media_urls, r.created_at,
+             r.title, r.body, r.media_urls, r.created_at, r.updated_at,
              r.experience_level, r.woodworker_type, r.shop_setting,
              r.ownership_duration, r.bought_new, r.usage_frequency, r.would_buy_again,
              SUM(CASE WHEN hv.helpful = 1 THEN 1 ELSE 0 END) AS helpful_yes,

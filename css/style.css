@@ -655,6 +655,35 @@ select.form-control {
 .reviewer-badge .buy-no   { color: var(--red); }
 .reviewer-badge .buy-maybe { color: var(--amber); }
 
+/* ── Review owner actions (Edit / Delete) ───────────────────────────────── */
+.review-owner-actions {
+  display: flex;
+  gap: .4rem;
+  margin-left: auto;
+  align-self: flex-start;
+  flex-shrink: 0;
+}
+.review-action-btn {
+  background: none;
+  border: 1px solid var(--teal-accent);
+  color: var(--teal-mid);
+  font-size: .7rem;
+  padding: .2rem .55rem;
+  border-radius: 4px;
+  cursor: pointer;
+  letter-spacing: .5px;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.review-action-btn:hover    { background: var(--teal-accent); color: var(--cream); }
+.review-action-btn.delete-btn:hover { border-color: var(--red); color: var(--red); background: none; }
+.review-action-btn.delete-confirm   { border-color: var(--red); color: var(--red); }
+
+.review-edited {
+  font-size: .7rem;
+  color: rgba(212,207,199,.4);
+  font-style: italic;
+}
+
 .upload-previews {
   display: flex;
   flex-wrap: wrap;

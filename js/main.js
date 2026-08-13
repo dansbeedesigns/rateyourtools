@@ -42,6 +42,28 @@ export const API = {
     return data;
   },
 
+  async put(path, body) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (Auth.getToken()) headers['Authorization'] = `Bearer ${Auth.getToken()}`;
+    const res = await fetch(this.base + path, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    return data;
+  },
+
+  async delete(path) {
+    const headers = {};
+    if (Auth.getToken()) headers['Authorization'] = `Bearer ${Auth.getToken()}`;
+    const res = await fetch(this.base + path, { method: 'DELETE', headers });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    return data;
+  },
+
   async upload(file) {
     const form = new FormData();
     form.append('file', file);
@@ -406,7 +428,9 @@ const CONTEXT_FIELDS = [
  * Renders the context field sections into `container` (a DOM element).
  * Returns a getValues() function that reads the current selections.
  */
-export function createContextFields(container) {
+// overrides: optional map of { fieldKey: value } — used when pre-populating an edit modal.
+// Profile field overrides take precedence over localStorage; non-profile overrides replace null.
+export function createContextFields(container, overrides = {}) {
   const selections = {};
 
   // ── Profile section ───────────────────────────────────────────────────
@@ -420,7 +444,10 @@ export function createContextFields(container) {
   toolSection.innerHTML = `<div class="review-context-heading">About this tool</div>`;
 
   CONTEXT_FIELDS.forEach(field => {
-    const saved = field.profile ? localStorage.getItem(LS_PREFIX + field.key) : null;
+    // Priority: explicit override → localStorage (profile only) → null
+    const saved = overrides[field.key] !== undefined && overrides[field.key] !== null
+      ? String(overrides[field.key])
+      : (field.profile ? localStorage.getItem(LS_PREFIX + field.key) : null);
     selections[field.key] = saved || null;
 
     const group = document.createElement('div');

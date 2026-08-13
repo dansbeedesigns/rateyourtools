@@ -117,6 +117,7 @@ CREATE TABLE IF NOT EXISTS reviews (
   usage_frequency    TEXT,    -- daily | weekly | monthly | rarely
   would_buy_again    TEXT,    -- yes | maybe | no
   created_at         DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at         DATETIME,                           -- set when author edits their review
   UNIQUE(tool_id, user_email)  -- one review per user per tool
 );
 

@@ -164,13 +164,14 @@ injectAuthModal();
 const slug = getParam('slug') || getParam('id');
 if (!slug) { location.href = '/'; }
 
-let toolData     = null;
-let reviewOffset = 0;
-const LIMIT      = 10;
-let totalReviews = 0;
-let uploadedUrls = [];
-let starRating   = 0;
+let toolData      = null;
+let reviewOffset  = 0;
+const LIMIT       = 10;
+let totalReviews  = 0;
+let uploadedUrls  = [];
+let starRating    = 0;
 let contextFields = null;
+let editingReviewId = null; // null = new review, number = editing existing
 
 // ── Load tool ──────────────────────────────────────────────────────────
 async function loadTool() {
@@ -289,6 +290,17 @@ async function loadReviews(append = false) {
           ? `<div class="reviewer-badge">${badgeParts.join('')}</div>`
           : '';
 
+        // Show edit/delete only to the review's author
+        const isOwner = Auth.isLoggedIn() && maskEmail(Auth.getEmail()) === r.user_email;
+        const editedLabel = r.updated_at
+          ? `<span class="review-edited">· edited</span>`
+          : '';
+        const ownerActions = isOwner ? `
+          <div class="review-owner-actions">
+            <button class="review-action-btn edit-btn">Edit</button>
+            <button class="review-action-btn delete-btn">Delete</button>
+          </div>` : '';
+
         const card = document.createElement('div');
         card.className = 'review-card';
         card.innerHTML = `
@@ -297,13 +309,15 @@ async function loadReviews(append = false) {
               <div class="review-avatar">${initials}</div>
               <div>
                 <div class="review-email">${r.user_email}</div>
-                <div style="display:flex;align-items:center;gap:.5rem">
+                <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
                   ${renderStars(r.rating)}
                   <span class="review-date">${formatDate(r.created_at)}</span>
+                  ${editedLabel}
                 </div>
                 ${badgeHtml}
               </div>
             </div>
+            ${ownerActions}
           </div>
           ${r.title ? `<div class="review-title">${r.title}</div>` : ''}
           <div class="review-body">${renderBody(r.body)}</div>
@@ -313,6 +327,28 @@ async function loadReviews(append = false) {
             <button class="helpful-btn" data-review="${r.id}" data-val="1">👍 ${r.helpful_yes ?? 0}</button>
             <button class="helpful-btn" data-review="${r.id}" data-val="0">👎 ${r.helpful_no ?? 0}</button>
           </div>`;
+
+        // Edit button
+        if (isOwner) {
+          card.querySelector('.edit-btn').addEventListener('click', () => openEditModal(r));
+
+          // Delete button — inline confirm pattern
+          const deleteBtn = card.querySelector('.delete-btn');
+          deleteBtn.addEventListener('click', () => {
+            if (deleteBtn.dataset.confirm) {
+              handleDeleteReview(r.id, card);
+            } else {
+              deleteBtn.textContent = 'Sure?';
+              deleteBtn.dataset.confirm = '1';
+              deleteBtn.classList.add('delete-confirm');
+              setTimeout(() => {
+                deleteBtn.textContent = 'Delete';
+                delete deleteBtn.dataset.confirm;
+                deleteBtn.classList.remove('delete-confirm');
+              }, 3000);
+            }
+          });
+        }
 
         card.querySelectorAll('.helpful-btn').forEach(btn => {
           btn.addEventListener('click', async () => {
@@ -347,9 +383,31 @@ async function loadReviews(append = false) {
 }
 
 // ── Review form ────────────────────────────────────────────────────────
+function initModalShared() {
+  // Shared setup for both new-review and edit-review modals
+  document.getElementById('review-body').addEventListener('input', function() {
+    document.getElementById('review-char-count').textContent = this.value.length;
+  });
+  const zone  = document.getElementById('upload-zone');
+  const input = document.getElementById('upload-input');
+  zone.addEventListener('click', () => input.click());
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag-over'); handleFiles([...e.dataTransfer.files]); });
+  input.addEventListener('change', () => handleFiles([...input.files]));
+}
+
 function openReviewModal() {
   requireAuth(() => {
-    openModal('review-modal');
+    editingReviewId = null;
+    document.querySelector('#review-modal .modal-title').textContent = 'Write a Review';
+    document.getElementById('review-submit').textContent = 'Submit Review';
+    starRating = 0; uploadedUrls = [];
+    document.getElementById('review-title').value = '';
+    document.getElementById('review-body').value = '';
+    document.getElementById('review-char-count').textContent = '0';
+    document.getElementById('upload-previews').innerHTML = '';
+
     // Star rating
     const starsEl = document.getElementById('review-stars-container');
     starsEl.innerHTML = renderStars(0, true);
@@ -357,22 +415,77 @@ function openReviewModal() {
       starRating = val;
       document.getElementById('review-submit').disabled = val === 0;
     });
-    document.getElementById('review-body').addEventListener('input', function() {
-      document.getElementById('review-char-count').textContent = this.value.length;
-    });
-    // Context fields
+    // Context fields (from localStorage)
     const ctxContainer = document.getElementById('review-context-fields');
     ctxContainer.innerHTML = '';
     contextFields = createContextFields(ctxContainer);
-    // Upload
-    const zone  = document.getElementById('upload-zone');
-    const input = document.getElementById('upload-input');
-    zone.addEventListener('click', () => input.click());
-    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
-    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
-    zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag-over'); handleFiles([...e.dataTransfer.files]); });
-    input.addEventListener('change', () => handleFiles([...input.files]));
+    initModalShared();
+    openModal('review-modal');
   });
+}
+
+function openEditModal(r) {
+  editingReviewId = r.id;
+  document.querySelector('#review-modal .modal-title').textContent = 'Edit Your Review';
+  document.getElementById('review-submit').textContent = 'Save Changes';
+  document.getElementById('review-submit').disabled = false;
+
+  // Pre-populate fields
+  starRating = r.rating;
+  document.getElementById('review-title').value = r.title || '';
+  document.getElementById('review-body').value  = r.body  || '';
+  document.getElementById('review-char-count').textContent = (r.body || '').length;
+
+  // Pre-populate stars
+  const starsEl = document.getElementById('review-stars-container');
+  starsEl.innerHTML = renderStars(r.rating, true);
+  initInteractiveStars(starsEl, val => { starRating = val; });
+
+  // Pre-populate context fields with existing values
+  const ctxContainer = document.getElementById('review-context-fields');
+  ctxContainer.innerHTML = '';
+  contextFields = createContextFields(ctxContainer, {
+    experience_level:   r.experience_level,
+    woodworker_type:    r.woodworker_type,
+    shop_setting:       r.shop_setting,
+    ownership_duration: r.ownership_duration,
+    bought_new:         r.bought_new != null ? String(r.bought_new) : undefined,
+    usage_frequency:    r.usage_frequency,
+    would_buy_again:    r.would_buy_again,
+  });
+
+  // Pre-populate uploaded media previews
+  uploadedUrls = r.media_urls ? [...r.media_urls] : [];
+  const previews = document.getElementById('upload-previews');
+  previews.innerHTML = '';
+  uploadedUrls.forEach(url => {
+    const isVideo = /\.(mp4|mov|webm)$/i.test(url);
+    const item = document.createElement('div');
+    item.className = 'upload-preview-item';
+    item.innerHTML = `${isVideo
+      ? `<video src="${url}" style="width:80px;height:80px;object-fit:cover;border-radius:8px"></video>`
+      : `<img src="${url}" alt="upload" style="width:80px;height:80px;object-fit:cover;border-radius:8px">`}
+      <span class="upload-preview-remove" data-url="${url}">✕</span>`;
+    item.querySelector('.upload-preview-remove').addEventListener('click', () => {
+      uploadedUrls = uploadedUrls.filter(u => u !== url); item.remove();
+    });
+    previews.appendChild(item);
+  });
+
+  initModalShared();
+  openModal('review-modal');
+}
+
+async function handleDeleteReview(id, card) {
+  try {
+    await API.delete(`/reviews/${id}`);
+    card.remove();
+    totalReviews--;
+    toast('Review deleted.', 'success');
+    await loadTool(); // refresh rating stats
+  } catch (err) {
+    toast(err.message, 'error');
+  }
 }
 
 async function handleFiles(files) {
@@ -401,24 +514,31 @@ document.getElementById('review-submit').addEventListener('click', async functio
   const body = document.getElementById('review-body').value.trim();
   if (body.length < 10) { toast('Please write at least 10 characters.', 'error'); return; }
   this.disabled = true;
-  this.innerHTML = `<span class="spinner"></span> Submitting…`;
+  this.innerHTML = `<span class="spinner"></span> ${editingReviewId ? 'Saving…' : 'Submitting…'}`;
+  const payload = {
+    tool_id:    toolData.id,
+    rating:     starRating,
+    title:      document.getElementById('review-title').value.trim(),
+    body,
+    media_urls: uploadedUrls,
+    ...(contextFields ? contextFields.getValues() : {}),
+  };
   try {
-    await API.post('/reviews', {
-      tool_id:    toolData.id,
-      rating:     starRating,
-      title:      document.getElementById('review-title').value.trim(),
-      body,
-      media_urls: uploadedUrls,
-      ...(contextFields ? contextFields.getValues() : {}),
-    });
+    if (editingReviewId) {
+      await API.put(`/reviews/${editingReviewId}`, payload);
+      toast('Review updated!', 'success');
+    } else {
+      await API.post('/reviews', payload);
+      toast('Review submitted! Thank you.', 'success');
+    }
     closeModal('review-modal');
-    toast('Review submitted! Thank you.', 'success');
+    editingReviewId = null;
     reviewOffset = 0; uploadedUrls = []; starRating = 0;
     await loadTool();
     await loadReviews();
   } catch (err) {
     this.disabled = false;
-    this.textContent = 'Submit Review';
+    this.textContent = editingReviewId ? 'Save Changes' : 'Submit Review';
     toast(err.message, 'error');
   }
 });
@@ -436,6 +556,13 @@ function requireAuthAsync(action) {
 
 function escHtml(str) {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Mirrors the server-side masking so we can detect which reviews belong to the logged-in user
+function maskEmail(email) {
+  if (!email) return '';
+  const [user, domain] = email.split('@');
+  return `${user[0]}${'*'.repeat(Math.min(user.length - 1, 5))}@${domain}`;
 }
 
 // Render a review body with preserved line breaks, bullet lists, and basic inline formatting.

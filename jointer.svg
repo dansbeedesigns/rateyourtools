@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 567 675" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;">
+    <g transform="matrix(1,0,0,1,-2577.08,-277.083)">
+        <g transform="matrix(4.16667,0,0,4.16667,2500,0)">
+            <rect x="22" y="91" width="129" height="30" style="fill:rgb(212,207,199);fill-rule:nonzero;stroke:rgb(10,32,32);stroke-width:7px;"/>
+        </g>
+        <g transform="matrix(4.16667,0,0,4.16667,2500,0)">
+            <rect x="43" y="70" width="87" height="24" style="fill:rgb(212,207,199);fill-rule:nonzero;stroke:rgb(10,32,32);stroke-width:7px;"/>
+        </g>
+        <g transform="matrix(4.16667,0,0,4.16667,2500,0)">
+            <rect x="55" y="121" width="69" height="87" style="fill:rgb(18,48,48);fill-rule:nonzero;stroke:rgb(10,32,32);stroke-width:7px;"/>
+        </g>
+        <g transform="matrix(4.16667,0,0,4.16667,2500,0)">
+            <rect x="43" y="208" width="93" height="17" style="fill:rgb(45,106,106);fill-rule:nonzero;stroke:rgb(10,32,32);stroke-width:7px;"/>
+        </g>
+        <g transform="matrix(4.16667,0,0,4.16667,2500,0)">
+            <path d="M113,91L113,99C113,101.76 110.76,104 108,104L83,104C80.24,104 78,101.76 78,99L78,91C78,88.24 80.24,86 83,86L108,86C110.76,86 113,88.24 113,91Z" style="fill:rgb(192,57,43);stroke:rgb(10,32,32);stroke-width:7px;"/>
+        </g>
+        <g transform="matrix(4.16667,0,0,4.16667,2500,0)">
+            <circle cx="34" cy="105" r="8" style="fill:rgb(232,145,58);stroke:rgb(10,32,32);stroke-width:7px;"/>
+        </g>
+        <g transform="matrix(4.16667,0,0,4.16667,2500,0)">
+            <circle cx="141" cy="105" r="8" style="fill:rgb(232,145,58);stroke:rgb(10,32,32);stroke-width:7px;"/>
+        </g>
+        <g transform="matrix(4.16667,0,0,4.16667,2500,0)">
+            <circle cx="120" cy="145" r="7" style="fill:rgb(232,145,58);stroke:rgb(10,32,32);stroke-width:7px;"/>
+        </g>
+    </g>
+</svg>
