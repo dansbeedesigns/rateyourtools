@@ -44,7 +44,7 @@ export async function onRequestGet({ request, env }) {
   }
 }
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, ctx }) {
   try {
     const session = await verifySession(request, env);
     if (!session) return error('Authentication required', 401);
@@ -103,7 +103,7 @@ export async function onRequestPost({ request, env }) {
     ).run();
 
     // Fire-and-forget notification email (errors are swallowed so the review still saves)
-    sendReviewNotification(env, {
+    ctx.waitUntil(sendReviewNotification(env, {
       id:         result.meta.last_row_id,
       tool_id,
       tool_name:  toolDetails?.tool_name  || `Tool #${tool_id}`,
@@ -112,7 +112,7 @@ export async function onRequestPost({ request, env }) {
       rating:     Number(rating),
       title:      (title || '').trim().slice(0, 120) || null,
       body:       reviewBody.trim(),
-    }).catch(() => {});
+    }).catch(() => {}));
 
     return json({ id: result.meta.last_row_id }, 201);
   } catch (err) {
