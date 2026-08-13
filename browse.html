@@ -108,7 +108,7 @@
 </footer>
 
 <script type="module">
-import { API, renderStars, getParam, initSearchTypeahead } from '/js/main.js';
+import { API, renderStars, getParam, initSearchTypeahead, CATEGORY_IMAGES } from '/js/main.js';
 
 const LIMIT = 20;
 let offset  = 0;
@@ -208,10 +208,18 @@ async function loadTools(newOffset = 0) {
 }
 
 function toolCard(tool, rank) {
-  const avg  = tool.avg_rating ?? 0;
+  const avg      = tool.avg_rating ?? 0;
   const showRank = sort === 'top' || sort === 'worst';
+  const catSlug  = tool.category_slug || '';
+  const fallback = CATEGORY_IMAGES[catSlug];
+  const imgHtml  = tool.image_url
+    ? `<div class="tool-card-img"><img src="${tool.image_url}" alt="${tool.name}" loading="lazy"></div>`
+    : fallback
+      ? `<div class="tool-card-img svg-fallback"><img src="${fallback}" alt="${tool.category_name || ''}" loading="lazy"></div>`
+      : '';
   return `
     <a href="/tool.html?slug=${tool.slug}" class="tool-card">
+      ${imgHtml}
       <div class="tool-card-body">
         <div class="tool-card-header">
           <div class="tool-card-brand">${tool.brand_name || ''}</div>
