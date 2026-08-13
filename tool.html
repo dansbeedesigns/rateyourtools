@@ -111,7 +111,10 @@
       <div class="form-group">
         <label for="review-body">Your Review</label>
         <textarea id="review-body" class="form-control" rows="5" placeholder="Share your experience — what works, what doesn't, how long you've owned it…" maxlength="3000"></textarea>
-        <div style="text-align:right;font-size:.75rem;color:var(--teal-mid);margin-top:.25rem"><span id="review-char-count">0</span>/3000</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.25rem">
+          <div style="font-size:.7rem;color:var(--teal-mid)">Tip: start a line with <code style="background:rgba(255,255,255,.08);padding:0 3px;border-radius:3px">-</code> for a bullet · <code style="background:rgba(255,255,255,.08);padding:0 3px;border-radius:3px">**bold**</code> · <code style="background:rgba(255,255,255,.08);padding:0 3px;border-radius:3px">*italic*</code></div>
+          <div style="font-size:.75rem;color:var(--teal-mid)"><span id="review-char-count">0</span>/3000</div>
+        </div>
       </div>
       <div class="form-group">
         <label>Photos & Videos (optional — max 5)</label>
@@ -123,6 +126,10 @@
         </div>
         <div class="upload-previews" id="upload-previews"></div>
       </div>
+
+      <!-- Context fields (rendered by JS) -->
+      <div id="review-context-fields"></div>
+
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost btn-sm modal-close">Cancel</button>
@@ -149,19 +156,21 @@
 
 <script type="module">
 import { API, Auth, toast, openModal, closeModal, requireAuth, injectAuthModal,
-         renderStars, initInteractiveStars, openLightbox, getParam, formatDate } from '/js/main.js';
+         renderStars, initInteractiveStars, openLightbox, getParam, formatDate,
+         createContextFields, reviewContextLabels } from '/js/main.js';
 
 injectAuthModal();
 
 const slug = getParam('slug') || getParam('id');
 if (!slug) { location.href = '/'; }
 
-let toolData  = null;
+let toolData     = null;
 let reviewOffset = 0;
 const LIMIT      = 10;
 let totalReviews = 0;
 let uploadedUrls = [];
 let starRating   = 0;
+let contextFields = null;
 
 // ── Load tool ──────────────────────────────────────────────────────────
 async function loadTool() {
@@ -265,6 +274,21 @@ async function loadReviews(append = false) {
             : `<img src="${url}" alt="Review photo" loading="lazy" style="width:100px;height:100px;object-fit:cover;border-radius:8px;border:1px solid var(--teal-accent);cursor:pointer" onclick="openLb(this.src)">`;
         }).join('') : '';
 
+        // Reviewer badge
+        const labels = reviewContextLabels();
+        const badgeParts = [];
+        if (r.experience_level)   badgeParts.push(`<span>${labels.experience_level[r.experience_level]  || ''}</span>`);
+        if (r.woodworker_type)    badgeParts.push(`<span>${labels.woodworker_type[r.woodworker_type]    || ''}</span>`);
+        if (r.ownership_duration) badgeParts.push(`<span>Owned ${labels.ownership_duration[r.ownership_duration] || ''}</span>`);
+        if (r.usage_frequency)    badgeParts.push(`<span>${labels.usage_frequency[r.usage_frequency]    || ''}</span>`);
+        if (r.would_buy_again) {
+          const buyClass = r.would_buy_again === 'yes' ? 'buy-yes' : r.would_buy_again === 'no' ? 'buy-no' : 'buy-maybe';
+          badgeParts.push(`<span class="${buyClass}">${labels.would_buy_again[r.would_buy_again] || ''}</span>`);
+        }
+        const badgeHtml = badgeParts.length
+          ? `<div class="reviewer-badge">${badgeParts.join('')}</div>`
+          : '';
+
         const card = document.createElement('div');
         card.className = 'review-card';
         card.innerHTML = `
@@ -277,11 +301,12 @@ async function loadReviews(append = false) {
                   ${renderStars(r.rating)}
                   <span class="review-date">${formatDate(r.created_at)}</span>
                 </div>
+                ${badgeHtml}
               </div>
             </div>
           </div>
           ${r.title ? `<div class="review-title">${r.title}</div>` : ''}
-          <div class="review-body">${escHtml(r.body)}</div>
+          <div class="review-body">${renderBody(r.body)}</div>
           ${media ? `<div class="review-media">${media}</div>` : ''}
           <div class="review-helpful">
             <span style="font-size:.8rem;color:var(--teal-mid)">Helpful?</span>
@@ -335,6 +360,10 @@ function openReviewModal() {
     document.getElementById('review-body').addEventListener('input', function() {
       document.getElementById('review-char-count').textContent = this.value.length;
     });
+    // Context fields
+    const ctxContainer = document.getElementById('review-context-fields');
+    ctxContainer.innerHTML = '';
+    contextFields = createContextFields(ctxContainer);
     // Upload
     const zone  = document.getElementById('upload-zone');
     const input = document.getElementById('upload-input');
@@ -380,6 +409,7 @@ document.getElementById('review-submit').addEventListener('click', async functio
       title:      document.getElementById('review-title').value.trim(),
       body,
       media_urls: uploadedUrls,
+      ...(contextFields ? contextFields.getValues() : {}),
     });
     closeModal('review-modal');
     toast('Review submitted! Thank you.', 'success');
@@ -406,6 +436,43 @@ function requireAuthAsync(action) {
 
 function escHtml(str) {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Render a review body with preserved line breaks, bullet lists, and basic inline formatting.
+// escHtml() runs first so user content is always HTML-safe before any transformations.
+function renderBody(str) {
+  const lines = escHtml(str).split('\n');
+  let html = '';
+  let inList = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const listItem = line.match(/^[-*]\s+(.*)/);
+
+    if (listItem) {
+      if (!inList) { html += '<ul class="review-list">'; inList = true; }
+      html += `<li>${inlineFmt(listItem[1])}</li>`;
+    } else {
+      if (inList) { html += '</ul>'; inList = false; }
+      if (line.trim() === '') {
+        // blank line = paragraph gap, but only if there is more content ahead
+        const hasMore = lines.slice(i + 1).some(l => l.trim() !== '');
+        if (hasMore) html += '<br>';
+      } else {
+        html += inlineFmt(line) + '<br>';
+      }
+    }
+  }
+
+  if (inList) html += '</ul>';
+  return html.replace(/<br>$/, ''); // strip trailing lone break
+}
+
+function inlineFmt(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,     '<em>$1</em>')
+    .replace(/_(.+?)_/g,       '<em>$1</em>');
 }
 
 // ── Init ───────────────────────────────────────────────────────────────

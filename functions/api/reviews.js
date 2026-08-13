@@ -15,6 +15,8 @@ export async function onRequestGet({ request, env }) {
     const reviews = await env.DB.prepare(`
       SELECT r.id, r.tool_id, r.user_email, r.rating,
              r.title, r.body, r.media_urls, r.created_at,
+             r.experience_level, r.woodworker_type, r.shop_setting,
+             r.ownership_duration, r.bought_new, r.usage_frequency, r.would_buy_again,
              SUM(CASE WHEN hv.helpful = 1 THEN 1 ELSE 0 END) AS helpful_yes,
              SUM(CASE WHEN hv.helpful = 0 THEN 1 ELSE 0 END) AS helpful_no
       FROM   reviews r
@@ -48,7 +50,11 @@ export async function onRequestPost({ request, env }) {
     if (!session) return error('Authentication required', 401);
 
     const body = await request.json();
-    const { tool_id, rating, title, body: reviewBody, media_urls = [] } = body;
+    const {
+      tool_id, rating, title, body: reviewBody, media_urls = [],
+      experience_level, woodworker_type, shop_setting,
+      ownership_duration, bought_new, usage_frequency, would_buy_again,
+    } = body;
 
     // Validate
     if (!tool_id)     return error('tool_id required');
@@ -75,15 +81,25 @@ export async function onRequestPost({ request, env }) {
     `).bind(tool_id).first();
 
     const result = await env.DB.prepare(`
-      INSERT INTO reviews (tool_id, user_email, rating, title, body, media_urls)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO reviews
+        (tool_id, user_email, rating, title, body, media_urls,
+         experience_level, woodworker_type, shop_setting,
+         ownership_duration, bought_new, usage_frequency, would_buy_again)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       tool_id,
       session.email,
       Number(rating),
       (title || '').trim().slice(0, 120) || null,
       reviewBody.trim(),
-      JSON.stringify(media_urls)
+      JSON.stringify(media_urls),
+      experience_level   || null,
+      woodworker_type    || null,
+      shop_setting       || null,
+      ownership_duration || null,
+      bought_new != null ? Number(bought_new) : null,
+      usage_frequency    || null,
+      would_buy_again    || null,
     ).run();
 
     // Fire-and-forget notification email (errors are swallowed so the review still saves)

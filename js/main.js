@@ -336,3 +336,141 @@ export function initSearchTypeahead(input, onSubmit) {
   input.addEventListener('blur', () => setTimeout(hide, 150));
   input.addEventListener('focus', () => { if (lastResults.length) show(); });
 }
+
+// ── Review context fields (pill-select groups) ─────────────────────────────
+// Profile keys are saved to localStorage and pre-populated on the next review.
+const PROFILE_KEYS = ['experience_level', 'woodworker_type', 'shop_setting'];
+const LS_PREFIX    = 'ryt_';
+
+const CONTEXT_FIELDS = [
+  {
+    key: 'experience_level', label: 'How long have you been woodworking?', profile: true,
+    options: [
+      { label: 'Less than 2 years', value: 'beginner' },
+      { label: '2–10 years',        value: 'intermediate' },
+      { label: '10+ years',         value: 'advanced' },
+    ],
+  },
+  {
+    key: 'woodworker_type', label: 'What kind of woodworker are you?', profile: true,
+    options: [
+      { label: 'Hobbyist',     value: 'hobbyist' },
+      { label: 'Semi-pro',     value: 'semi-pro' },
+      { label: 'Professional', value: 'professional' },
+    ],
+  },
+  {
+    key: 'shop_setting', label: 'Shop setting', profile: true,
+    options: [
+      { label: 'Home garage / basement', value: 'home' },
+      { label: 'Dedicated shop',         value: 'dedicated' },
+      { label: 'Shared / community space', value: 'shared' },
+    ],
+  },
+  {
+    key: 'ownership_duration', label: 'How long have you owned this tool?', profile: false,
+    options: [
+      { label: 'Less than 6 months', value: 'lt6mo' },
+      { label: '6–12 months',        value: '6to12mo' },
+      { label: '1–3 years',          value: '1to3yr' },
+      { label: '3+ years',           value: '3plus' },
+    ],
+  },
+  {
+    key: 'bought_new', label: 'New or used?', profile: false,
+    options: [
+      { label: 'Bought new',  value: '1' },
+      { label: 'Bought used', value: '0' },
+    ],
+  },
+  {
+    key: 'usage_frequency', label: 'How often do you use it?', profile: false,
+    options: [
+      { label: 'Daily',               value: 'daily' },
+      { label: 'Weekly',              value: 'weekly' },
+      { label: 'A few times a month', value: 'monthly' },
+      { label: 'Rarely',             value: 'rarely' },
+    ],
+  },
+  {
+    key: 'would_buy_again', label: 'Would you buy it again?', profile: false,
+    options: [
+      { label: 'Yes',   value: 'yes' },
+      { label: 'Maybe', value: 'maybe' },
+      { label: 'No',    value: 'no' },
+    ],
+  },
+];
+
+/**
+ * Renders the context field sections into `container` (a DOM element).
+ * Returns a getValues() function that reads the current selections.
+ */
+export function createContextFields(container) {
+  const selections = {};
+
+  // ── Profile section ───────────────────────────────────────────────────
+  const profileSection = document.createElement('div');
+  profileSection.className = 'review-context-section';
+  profileSection.innerHTML = `<div class="review-context-heading">About you <span style="color:rgba(212,207,199,.35);font-size:.6rem;letter-spacing:1px">&nbsp;SAVED FOR FUTURE REVIEWS</span></div>`;
+
+  // ── Tool section ──────────────────────────────────────────────────────
+  const toolSection = document.createElement('div');
+  toolSection.className = 'review-context-section';
+  toolSection.innerHTML = `<div class="review-context-heading">About this tool</div>`;
+
+  CONTEXT_FIELDS.forEach(field => {
+    const saved = field.profile ? localStorage.getItem(LS_PREFIX + field.key) : null;
+    selections[field.key] = saved || null;
+
+    const group = document.createElement('div');
+    group.className = 'form-group';
+    group.style.marginBottom = '.85rem';
+
+    const lbl = document.createElement('label');
+    lbl.style.cssText = 'font-size:.8rem;color:rgba(212,207,199,.7);margin-bottom:.35rem;display:block';
+    lbl.textContent = field.label;
+
+    const pills = document.createElement('div');
+    pills.className = 'pill-select';
+
+    field.options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = opt.label;
+      btn.dataset.value = opt.value;
+      if (saved === opt.value) btn.classList.add('active');
+
+      btn.addEventListener('click', () => {
+        pills.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selections[field.key] = opt.value;
+        if (field.profile) localStorage.setItem(LS_PREFIX + field.key, opt.value);
+      });
+
+      pills.appendChild(btn);
+    });
+
+    group.appendChild(lbl);
+    group.appendChild(pills);
+    (field.profile ? profileSection : toolSection).appendChild(group);
+  });
+
+  container.appendChild(profileSection);
+  container.appendChild(toolSection);
+
+  return {
+    getValues() { return { ...selections }; },
+  };
+}
+
+export function reviewContextLabels() {
+  return {
+    experience_level:   { beginner: 'Beginner (< 2 yrs)', intermediate: 'Intermediate (2–10 yrs)', advanced: 'Advanced (10+ yrs)' },
+    woodworker_type:    { hobbyist: 'Hobbyist', 'semi-pro': 'Semi-pro', professional: 'Professional' },
+    shop_setting:       { home: 'Home shop', dedicated: 'Dedicated shop', shared: 'Shared space' },
+    ownership_duration: { lt6mo: '< 6 months', '6to12mo': '6–12 months', '1to3yr': '1–3 years', '3plus': '3+ years' },
+    usage_frequency:    { daily: 'Uses daily', weekly: 'Uses weekly', monthly: 'Uses monthly', rarely: 'Uses rarely' },
+    would_buy_again:    { yes: 'Would buy again', maybe: 'Would maybe buy again', no: 'Would NOT buy again' },
+  };
+}

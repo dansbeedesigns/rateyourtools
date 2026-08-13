@@ -100,15 +100,24 @@ CREATE INDEX IF NOT EXISTS idx_tokens_email ON verification_tokens(email);
 
 -- ─── Reviews ─────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS reviews (
-  id         INTEGER PRIMARY KEY AUTOINCREMENT,
-  tool_id    INTEGER NOT NULL REFERENCES tools(id),
-  user_email TEXT    NOT NULL,
-  rating     INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),
-  title      TEXT,
-  body       TEXT    NOT NULL,
-  media_urls TEXT    DEFAULT '[]',  -- JSON array of R2 URLs
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE(tool_id, user_email)       -- one review per user per tool
+  id                 INTEGER  PRIMARY KEY AUTOINCREMENT,
+  tool_id            INTEGER  NOT NULL REFERENCES tools(id),
+  user_email         TEXT     NOT NULL,
+  rating             INTEGER  NOT NULL CHECK(rating BETWEEN 1 AND 5),
+  title              TEXT,
+  body               TEXT     NOT NULL,
+  media_urls         TEXT     DEFAULT '[]',  -- JSON array of R2 URLs
+  -- reviewer profile (saved in browser, pre-populated on next review)
+  experience_level   TEXT,    -- beginner | intermediate | advanced
+  woodworker_type    TEXT,    -- hobbyist | semi-pro | professional
+  shop_setting       TEXT,    -- home | dedicated | shared
+  -- tool-specific context
+  ownership_duration TEXT,    -- lt6mo | 6to12mo | 1to3yr | 3plus
+  bought_new         INTEGER, -- 1 = new, 0 = used
+  usage_frequency    TEXT,    -- daily | weekly | monthly | rarely
+  would_buy_again    TEXT,    -- yes | maybe | no
+  created_at         DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(tool_id, user_email)  -- one review per user per tool
 );
 
 CREATE INDEX IF NOT EXISTS idx_reviews_tool   ON reviews(tool_id);
