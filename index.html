@@ -54,6 +54,15 @@
   </div>
 </section>
 
+<!-- ─── Category Selector Strip ─────────────────────────────────────────── -->
+<section class="category-strip-section">
+  <div class="container">
+    <div class="category-strip" id="category-strip">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+</section>
+
 <!-- ─── Why This Site ────────────────────────────────────────────────────── -->
 <section class="section" style="background:var(--teal-accent);border-top:3px solid var(--amber);border-bottom:none;">
   <div class="container" style="max-width:800px">
@@ -384,7 +393,7 @@
 </div>
 
 <script type="module">
-import { API, Auth, toast, openModal, closeModal, requireAuth, injectAuthModal, renderStars, initInteractiveStars, getParam, initSearchTypeahead, createContextFields } from '/js/main.js';
+import { API, Auth, toast, openModal, closeModal, requireAuth, injectAuthModal, renderStars, initInteractiveStars, getParam, initSearchTypeahead, createContextFields, CATEGORY_IMAGES } from '/js/main.js';
 
 injectAuthModal();
 
@@ -403,12 +412,44 @@ async function loadCategories() {
   } catch {}
 }
 
+// ── Category strip ─────────────────────────────────────────────────────
+const STRIP_CATEGORIES = [
+  { slug: 'table-saws',      label: 'Table Saws' },
+  { slug: 'band-saws',       label: 'Band Saws' },
+  { slug: 'jointers',        label: 'Jointers' },
+  { slug: 'planers',         label: 'Planers' },
+  { slug: 'router-tables',   label: 'Router Tables' },
+  { slug: 'drill-presses',   label: 'Drill Presses' },
+  { slug: 'dust-collection', label: 'Dust Collection' },
+];
+
+function buildCategoryStrip() {
+  const strip = document.getElementById('category-strip');
+  if (!strip) return;
+  strip.innerHTML = STRIP_CATEGORIES.map(cat => {
+    const imgSrc = CATEGORY_IMAGES[cat.slug] || '';
+    return `
+      <a href="/browse.html?category=${cat.slug}" class="cat-strip-card">
+        ${imgSrc ? `<img src="${imgSrc}" alt="${cat.label}" class="cat-strip-img" loading="lazy">` : ''}
+        <span class="cat-strip-label">${cat.label}</span>
+      </a>`;
+  }).join('');
+}
+
 // ── Tool card renderer ─────────────────────────────────────────────────
 function toolCard(tool, rank, worst = false) {
-  const avg  = tool.avg_rating ?? 0;
-  const href = `/tool.html?slug=${tool.slug}`;
+  const avg      = tool.avg_rating ?? 0;
+  const href     = `/tool.html?slug=${tool.slug}`;
+  const catSlug  = tool.category_slug || '';
+  const fallback = CATEGORY_IMAGES[catSlug];
+  const imgHtml  = tool.image_url
+    ? `<div class="tool-card-img"><img src="${tool.image_url}" alt="${tool.name}" loading="lazy"></div>`
+    : fallback
+      ? `<div class="tool-card-img svg-fallback"><img src="${fallback}" alt="${tool.category_name || ''}" loading="lazy"></div>`
+      : '';
   return `
     <a href="${href}" class="tool-card">
+      ${imgHtml}
       <div class="tool-card-body">
         <div class="tool-card-header">
           <div class="tool-card-brand">${tool.brand_name || ''}</div>
@@ -649,6 +690,7 @@ document.getElementById('suggest-submit').addEventListener('click', async functi
 });
 
 // ── Init ───────────────────────────────────────────────────────────────
+buildCategoryStrip();
 loadCategories();
 loadRankings();
 </script>

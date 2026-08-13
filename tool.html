@@ -157,7 +157,7 @@
 <script type="module">
 import { API, Auth, toast, openModal, closeModal, requireAuth, injectAuthModal,
          renderStars, initInteractiveStars, openLightbox, getParam, formatDate,
-         createContextFields, reviewContextLabels } from '/js/main.js';
+         createContextFields, reviewContextLabels, CATEGORY_IMAGES } from '/js/main.js';
 
 injectAuthModal();
 
@@ -192,7 +192,9 @@ async function loadTool() {
             <div class="tool-hero-image">
               ${tool.image_url
                 ? `<img src="${tool.image_url}" alt="${tool.name}" loading="eager">`
-                : `<span class="no-image">🔧</span>`}
+                : CATEGORY_IMAGES[tool.category_slug]
+                  ? `<img src="${CATEGORY_IMAGES[tool.category_slug]}" alt="${tool.category_name}" class="svg-fallback-img" loading="eager">`
+                  : `<span class="no-image">🔧</span>`}
             </div>
             <div class="tool-hero-content">
               <div class="tool-hero-breadcrumb">

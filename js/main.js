@@ -282,6 +282,19 @@ export function slugify(str) {
   return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
+// ── Category SVG illustrations ────────────────────────────────────────────
+// Maps category slug → path to the SVG illustration for that category.
+// Used as fallback images in tool cards and as the category selector strip.
+export const CATEGORY_IMAGES = {
+  'band-saws':      '/bandsaw.svg',
+  'table-saws':     '/table-saw.svg',
+  'drill-presses':  '/drill-press.svg',
+  'dust-collection':'/dust-collector.svg',
+  'jointers':       '/jointer.svg',
+  'planers':        '/planer.svg',
+  'router-tables':  '/router-table.svg',
+};
+
 // ── Search typeahead ──────────────────────────────────────────────────────
 // Wraps the <input> in a .search-bar-wrap and appends a dropdown.
 // onSubmit(q) is called when the user presses Enter or clicks Search.
