@@ -441,6 +441,7 @@ function escHtml(str) {
 // Render a review body with preserved line breaks, bullet lists, and basic inline formatting.
 // escHtml() runs first so user content is always HTML-safe before any transformations.
 function renderBody(str) {
+  if (!str) return '';
   const lines = escHtml(str).split('\n');
   let html = '';
   let inList = false;
