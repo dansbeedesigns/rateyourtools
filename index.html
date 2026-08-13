@@ -31,6 +31,7 @@
       <a href="/browse.html">Browse</a>
       <a href="/browse.html?sort=top">Top Rated</a>
       <a href="/browse.html?sort=worst">Worst Rated</a>
+      <a href="/browse.html?sort=no-buy">Would NOT Buy Again</a>
       <button class="btn btn-outline btn-sm nav-cta" id="write-review-nav">Write a Review</button>
     </nav>
   </div>
@@ -145,6 +146,45 @@
     </div>
     <div class="tools-grid" id="worst-tools">
       <!-- Skeleton -->
+      <div class="tool-card" style="pointer-events:none">
+        <div class="tool-card-body" style="gap:.75rem">
+          <div class="skeleton" style="height:12px;width:50%"></div>
+          <div class="skeleton" style="height:20px;width:85%"></div>
+          <div class="skeleton" style="height:12px;width:40%"></div>
+          <div class="skeleton" style="height:12px;width:30%;margin-top:.5rem"></div>
+        </div>
+      </div>
+      <div class="tool-card" style="pointer-events:none">
+        <div class="tool-card-body" style="gap:.75rem">
+          <div class="skeleton" style="height:12px;width:50%"></div>
+          <div class="skeleton" style="height:20px;width:85%"></div>
+          <div class="skeleton" style="height:12px;width:40%"></div>
+          <div class="skeleton" style="height:12px;width:30%;margin-top:.5rem"></div>
+        </div>
+      </div>
+      <div class="tool-card" style="pointer-events:none">
+        <div class="tool-card-body" style="gap:.75rem">
+          <div class="skeleton" style="height:12px;width:50%"></div>
+          <div class="skeleton" style="height:20px;width:85%"></div>
+          <div class="skeleton" style="height:12px;width:40%"></div>
+          <div class="skeleton" style="height:12px;width:30%;margin-top:.5rem"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Would NOT Buy Again ────────────────────────────────────────────── -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <h2><span class="accent-bar" style="background:var(--red)"></span>Would NOT Buy Again</h2>
+      <a href="/browse.html?sort=no-buy">View all →</a>
+    </div>
+    <p style="color:rgba(212,207,199,0.7);font-size:.9rem;margin-bottom:1.5rem;max-width:600px;">
+      Tools whose owners explicitly said they would not buy again — the strongest signal of regret in the database.
+    </p>
+    <div class="tools-grid" id="no-buy-tools">
       <div class="tool-card" style="pointer-events:none">
         <div class="tool-card-body" style="gap:.75rem">
           <div class="skeleton" style="height:12px;width:50%"></div>
@@ -468,17 +508,19 @@ function toolCard(tool, rank, worst = false) {
     </a>`;
 }
 
-// ── Load top & worst ───────────────────────────────────────────────────
+// ── Load top, worst & no-buy ───────────────────────────────────────────
 async function loadRankings() {
   try {
-    const [topData, worstData, allData] = await Promise.all([
+    const [topData, worstData, noBuyData, allData] = await Promise.all([
       API.get('/tools', { sort: 'top',    limit: 4 }),
       API.get('/tools', { sort: 'worst',  limit: 4 }),
+      API.get('/tools', { sort: 'no-buy', limit: 4 }),
       API.get('/tools', { limit: 1 }),
     ]);
 
-    const topEl   = document.getElementById('top-tools');
-    const worstEl = document.getElementById('worst-tools');
+    const topEl    = document.getElementById('top-tools');
+    const worstEl  = document.getElementById('worst-tools');
+    const noBuyEl  = document.getElementById('no-buy-tools');
 
     topEl.innerHTML = topData.tools.length
       ? topData.tools.map((t, i) => toolCard(t, i + 1)).join('')
@@ -487,6 +529,10 @@ async function loadRankings() {
     worstEl.innerHTML = worstData.tools.length
       ? worstData.tools.map((t, i) => toolCard(t, i + 1, true)).join('')
       : `<div class="empty-state"><div class="icon">🔧</div><h3>No reviews yet</h3><p>Be the first to rate a tool!</p></div>`;
+
+    noBuyEl.innerHTML = noBuyData.tools.length
+      ? noBuyData.tools.map((t, i) => toolCard(t, i + 1, true)).join('')
+      : `<div class="empty-state"><div class="icon">✅</div><h3>None yet</h3><p>No tools with "Would NOT buy again" reviews.</p></div>`;
 
     // Stats
     const brandsData = await API.get('/tools', { mode: 'brands' });

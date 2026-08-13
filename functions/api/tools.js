@@ -3,7 +3,7 @@
 //   q        — full-text search
 //   category — category slug
 //   brand    — brand slug
-//   sort     — top | worst | newest (default: newest)
+//   sort     — top | worst | no-buy | newest (default: newest)
 //   limit    — integer (default 20, max 50)
 //   offset   — integer (default 0)
 //   mode     — categories | brands  (returns list of those instead of tools)
@@ -69,22 +69,25 @@ export async function onRequestGet({ request, env }) {
     const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
     const orderBy = {
-      top:    `avg_rating DESC, review_count DESC`,
-      worst:  `avg_rating ASC,  review_count DESC`,
-      newest: `t.created_at DESC`,
+      top:      `avg_rating DESC, review_count DESC`,
+      worst:    `avg_rating ASC,  review_count DESC`,
+      'no-buy': `no_buy_count DESC, review_count DESC`,
+      newest:   `t.created_at DESC`,
     }[sort] || `t.created_at DESC`;
 
     const havingClause =
-      sort === 'top'   ? `HAVING review_count >= 1 AND ROUND(AVG(r.rating), 1) >= 3.5` :
-      sort === 'worst' ? `HAVING review_count >= 1 AND ROUND(AVG(r.rating), 1) <= 2.5` :
+      sort === 'top'    ? `HAVING review_count >= 1 AND ROUND(AVG(r.rating), 1) >= 3.5` :
+      sort === 'worst'  ? `HAVING review_count >= 1 AND ROUND(AVG(r.rating), 1) <= 2.5` :
+      sort === 'no-buy' ? `HAVING no_buy_count >= 1` :
       '';
 
     const sql = `
       SELECT t.id, t.name, t.slug, t.description, t.image_url, t.created_at,
              b.name  AS brand_name,  b.slug  AS brand_slug,
              c.name  AS category_name, c.slug AS category_slug, c.icon AS category_icon,
-             ROUND(AVG(r.rating), 1) AS avg_rating,
-             COUNT(r.id)            AS review_count
+             ROUND(AVG(r.rating), 1)                                    AS avg_rating,
+             COUNT(r.id)                                                AS review_count,
+             SUM(CASE WHEN r.would_buy_again = 'no' THEN 1 ELSE 0 END) AS no_buy_count
       FROM   tools t
       LEFT JOIN brands     b ON b.id = t.brand_id
       LEFT JOIN categories c ON c.id = t.category_id

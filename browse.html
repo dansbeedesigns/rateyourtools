@@ -47,6 +47,7 @@
       <a href="/browse.html" class="pill sort-tab" data-sort="newest">Newest</a>
       <a href="/browse.html?sort=top" class="pill sort-tab" data-sort="top">⭐ Top Rated</a>
       <a href="/browse.html?sort=worst" class="pill sort-tab" data-sort="worst">👎 Worst Rated</a>
+      <a href="/browse.html?sort=no-buy" class="pill sort-tab" data-sort="no-buy">🚫 Would NOT Buy Again</a>
     </div>
 
     <div class="browse-layout">
@@ -132,7 +133,7 @@ document.querySelectorAll('.sort-tab').forEach(tab => {
 });
 
 // ── Page heading ───────────────────────────────────────────────────────
-const sortLabel = { top: 'Top Rated Tools', worst: 'Worst Rated Tools', newest: 'Browse Tools' };
+const sortLabel = { top: 'Top Rated Tools', worst: 'Worst Rated Tools', 'no-buy': 'Would NOT Buy Again', newest: 'Browse Tools' };
 document.getElementById('page-heading').textContent =
   q ? `Search: "${q}"` : sortLabel[sort] || 'Browse Tools';
 
