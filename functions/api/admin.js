@@ -4,6 +4,7 @@
  *
  * GET    /api/admin?section=stats
  * GET    /api/admin?section=suggestions[&status=pending]
+ * PUT    /api/admin?section=suggestions  { id, brand, name, category }
  * POST   /api/admin?section=suggestions  { id, action: 'approve'|'reject' }
  * GET    /api/admin?section=reviews[&page=1]
  * DELETE /api/admin?section=reviews      { id }
@@ -85,6 +86,16 @@ export async function onRequest({ request, env }) {
         `SELECT COUNT(*) as n FROM tool_suggestions ${whereClause}`
       ).bind(...countParams).first();
       return json({ suggestions: rows.results, total: total.n, page });
+    }
+
+    if (method === 'PUT') {
+      const { id, brand, name, category } = await request.json();
+      if (!id) return err('id required');
+      if (!brand || !name) return err('brand and name are required');
+      await env.DB.prepare(
+        'UPDATE tool_suggestions SET brand=?, name=?, category=? WHERE id=?'
+      ).bind(brand.trim(), name.trim(), category?.trim() || null, id).run();
+      return json({ ok: true });
     }
 
     if (method === 'POST') {

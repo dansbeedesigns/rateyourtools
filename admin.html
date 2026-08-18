@@ -203,8 +203,7 @@
         <div class="stat-card"><span class="n" id="s-reviews">—</span><span class="label">Reviews</span></div>
         <div class="stat-card"><span class="n" id="s-brands">—</span><span class="label">Brands</span></div>
         <div class="stat-card"><span class="n" id="s-users">—</span><span class="label">Users</span></div>
-        <div class="stat-card"><span class="n" id="s-suggestions">—</span><span class="label">Suggestions</span></div>
-        <div class="stat-card alert"><span class="n" id="s-pending">—</span><span class="label">Pending Review</span></div>
+        <div class="stat-card alert"><span class="n" id="s-suggestions">—</span><span class="label">Pending Suggestions</span></div>
       </div>
     </section>
 
@@ -371,6 +370,37 @@
   </div>
 </div>
 
+<!-- ── Edit Suggestion Modal ──────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="sug-edit-modal" role="dialog" aria-modal="true">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-header">
+      <span class="modal-title">Edit Suggestion</span>
+      <button class="modal-close" data-modal="sug-edit-modal" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <form class="edit-form" id="sug-edit-form">
+        <input type="hidden" id="sug-edit-id">
+        <div>
+          <label>Brand</label>
+          <input type="text" id="sug-edit-brand" maxlength="200" required>
+        </div>
+        <div>
+          <label>Tool Name</label>
+          <input type="text" id="sug-edit-name" maxlength="200" required>
+        </div>
+        <div>
+          <label>Category <span style="color:rgba(212,207,199,.45);font-size:.75rem">(optional — must match an existing category name)</span></label>
+          <input type="text" id="sug-edit-category" maxlength="200" placeholder="e.g. Table Saws">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-modal="sug-edit-modal">Cancel</button>
+      <button class="btn btn-primary" id="sug-edit-save-btn">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { API, Auth, toast, openModal, closeModal, injectAuthModal } from '/js/main.js';
 
@@ -493,11 +523,15 @@ async function initAdmin() {
     if (e.key === 'Enter') { usersPage = 1; loadUsers(); }
   });
 
-  // Edit modal save
+  // Tool edit modal save
   document.getElementById('edit-save-btn').addEventListener('click', saveToolEdit);
-  document.querySelectorAll('.modal-close').forEach(b =>
-    b.addEventListener('click', () => closeModal('edit-modal'))
-  );
+  document.querySelectorAll('.modal-close').forEach(b => {
+    const target = b.dataset.modal || 'edit-modal';
+    b.addEventListener('click', () => closeModal(target));
+  });
+
+  // Suggestion edit modal save
+  document.getElementById('sug-edit-save-btn').addEventListener('click', saveSugEdit);
 
   // Activate tab from URL hash (e.g. /admin.html#reviews from notification emails)
   // Falls back to 'stats' if hash is missing or invalid
@@ -513,8 +547,7 @@ async function loadStats() {
     document.getElementById('s-reviews').textContent     = d.reviews.toLocaleString();
     document.getElementById('s-brands').textContent      = d.brands.toLocaleString();
     document.getElementById('s-users').textContent       = d.users.toLocaleString();
-    document.getElementById('s-suggestions').textContent = d.suggestions.toLocaleString();
-    document.getElementById('s-pending').textContent     = d.pending.toLocaleString();
+    document.getElementById('s-suggestions').textContent = d.pending.toLocaleString();
 
     // Pending badge on tab
     if (d.pending > 0) {
@@ -526,18 +559,19 @@ async function loadStats() {
 
 // ── Suggestions ────────────────────────────────────────────────────────────
 let sugPage = 1;
+let sugList  = [];
 
 async function loadSuggestions() {
   const status = document.getElementById('sug-filter').value;
   const params = status ? { status, page: sugPage } : { page: sugPage };
   try {
     const d = await adminGet('suggestions', params);
+    sugList = d.suggestions;
     const tbody = document.getElementById('sug-tbody');
-    const label = status || 'matching';
     if (!d.suggestions.length) {
       tbody.innerHTML = `<tr class="empty-row"><td colspan="7">No ${status ? status : ''} suggestions found.</td></tr>`;
     } else {
-      tbody.innerHTML = d.suggestions.map(s => `
+      tbody.innerHTML = d.suggestions.map((s, i) => `
         <tr data-id="${s.id}">
           <td>${s.brand}</td>
           <td>${s.name}</td>
@@ -548,12 +582,16 @@ async function loadSuggestions() {
           <td>
             ${s.status === 'pending' ? `
               <div class="action-group">
+                <button class="btn-edit"    data-idx="${i}">Edit</button>
                 <button class="btn-approve" data-id="${s.id}" data-action="approve">Approve</button>
                 <button class="btn-reject"  data-id="${s.id}" data-action="reject">Reject</button>
               </div>` : '—'}
           </td>
         </tr>`).join('');
 
+      tbody.querySelectorAll('.btn-edit').forEach(btn => {
+        btn.addEventListener('click', () => openSugEditModal(sugList[Number(btn.dataset.idx)]));
+      });
       tbody.querySelectorAll('[data-action]').forEach(btn => {
         btn.addEventListener('click', () => handleSuggestion(btn.dataset.id, btn.dataset.action));
       });
@@ -577,6 +615,29 @@ async function handleSuggestion(id, action) {
         brands = bData.brands || [];
       } catch {}
     }
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function openSugEditModal(sug) {
+  document.getElementById('sug-edit-id').value       = sug.id;
+  document.getElementById('sug-edit-brand').value    = sug.brand;
+  document.getElementById('sug-edit-name').value     = sug.name;
+  document.getElementById('sug-edit-category').value = sug.category || '';
+  openModal('sug-edit-modal');
+}
+
+async function saveSugEdit() {
+  const id       = Number(document.getElementById('sug-edit-id').value);
+  const brand    = document.getElementById('sug-edit-brand').value.trim();
+  const name     = document.getElementById('sug-edit-name').value.trim();
+  const category = document.getElementById('sug-edit-category').value.trim();
+  if (!brand) { toast('Brand is required', 'error'); return; }
+  if (!name)  { toast('Tool name is required', 'error'); return; }
+  try {
+    await adminPut('suggestions', { id, brand, name, category });
+    toast('Suggestion updated.', 'success');
+    closeModal('sug-edit-modal');
+    loadSuggestions();
   } catch (e) { toast(e.message, 'error'); }
 }
 
